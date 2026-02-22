@@ -3,11 +3,16 @@ import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 
-export default function GlassesCard({ glasses }) {
+export default function GlassesCard({ glasses, onAddToCart }) {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  const handleAddToCart = () => {
+    if (onAddToCart) {
+      onAddToCart(glasses);
+    }
+  };
 
   return (
     <>
@@ -20,9 +25,14 @@ export default function GlassesCard({ glasses }) {
             Brand: {glasses.brand} <br />
             Price: ${glasses.price}
           </Card.Text>
-          <Button variant="primary" onClick={handleShow}>
-            Detail
-          </Button>
+          <div className="d-flex gap-2">
+            <Button variant="primary" onClick={handleShow}>
+              Detail
+            </Button>
+            <Button variant="success" onClick={handleAddToCart}>
+              Add to cart
+            </Button>
+          </div>
         </Card.Body>
       </Card>
 

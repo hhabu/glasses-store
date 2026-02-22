@@ -3,6 +3,7 @@ import NavBar from "./components/layout/NavBar";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 import HomePage from "./pages/HomePage";
+import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
 import SalesDashboard from "./pages/SalesDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -36,6 +37,7 @@ function App() {
       <Routes>
         {/* PUBLIC */}
         <Route path="/" element={<HomePage />} />
+        <Route path="/cart" element={<CartPage />} />
         <Route
           path="/login"
           element={user ? <Navigate to="/" replace /> : <LoginPage />}
