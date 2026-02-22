@@ -1,0 +1,114 @@
+.navbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px 40px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* LOGO */
+.navbar-logo h2 {
+    margin: 0;
+    color: #222;
+}
+
+/* SEARCH */
+.navbar-search {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.navbar-search input {
+    width: 60%;
+    padding: 10px 14px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 14px;
+}
+
+.navbar-search input:focus {
+    border-color: #222;
+}
+
+/* ACTIONS */
+.navbar-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.login {
+    background-color: transparent;
+    border: 1px solid #222;
+    color: #222;
+}
+
+.signup {
+    background-color: #222;
+    color: #fff;
+}
+
+.btn:hover {
+    opacity: 0.85;
+}
+
+.navbar-inner {
+    max-width: 1200px;
+    /* giống glasses-container */
+    width: 100%;
+    margin: auto;
+
+    padding: 0 40px;
+    /* tạo khoảng cách 2 bên */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.profile-wrapper {
+  position: relative;
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  object-fit: cover;
+}
+
+.profile-menu {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 160px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.profile-menu div {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.profile-menu div:hover {
+  background-color: #f5f5f5;
+}
