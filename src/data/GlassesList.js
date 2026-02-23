@@ -8,6 +8,7 @@ const glassesList = [
         brand: "Ray-Ban",
         category: "Sun Glasses",
         width: "58mm",
+        quantity: 24,
         price: 200000,
     },
     {
@@ -19,6 +20,7 @@ const glassesList = [
         brand: "Oakley",
         category: "Sun Glasses",
         width: "55mm",
+        quantity: 17,
         price: 230000,
     },
     {
@@ -30,6 +32,7 @@ const glassesList = [
         brand: "Gucci",
         category: "Optical",
         width: "52mm",
+        quantity: 9,
         price: 120000,
     },
     {
@@ -41,6 +44,7 @@ const glassesList = [
         brand: "Jung Su",
         category: "Optical",
         width: "52mm",
+        quantity: 14,
         price: 330000,
     },
     {
@@ -52,6 +56,7 @@ const glassesList = [
         brand: "Rexton",
         category: "Optical",
         width: "52mm",
+        quantity: 11,
         price: 260000,
     },
     {
@@ -63,6 +68,7 @@ const glassesList = [
         brand: "Somahel",
         category: "Optical",
         width: "52mm",
+        quantity: 20,
         price: 190000,
     },
     {
@@ -74,6 +80,7 @@ const glassesList = [
         brand: "Roaesbon",
         category: "Optical",
         width: "52mm",
+        quantity: 6,
         price: 2200000,
     },
     {
@@ -85,6 +92,7 @@ const glassesList = [
         brand: "Vitos",
         category: "Optical",
         width: "52mm",
+        quantity: 13,
         price: 200000,
     }
 ];

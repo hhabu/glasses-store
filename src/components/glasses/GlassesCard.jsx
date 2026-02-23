@@ -51,7 +51,8 @@ export default function GlassesCard({ glasses, onAddToCart }) {
           <p><strong>Brand:</strong> {glasses.brand}</p>
           <p><strong>Color:</strong> {glasses.color}</p>
           <p><strong>Price:</strong> ${glasses.price}</p>
-          <p><strong>Description:</strong> {glasses.description}</p>
+          <p><strong>Width:</strong> {glasses.width}</p>
+          <p><strong>Quantity:</strong> {glasses.quantity}</p>
         </Modal.Body>
 
         <Modal.Footer>
