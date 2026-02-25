@@ -103,7 +103,7 @@ export default function UserManagement() {
           <button
             style={{
               marginLeft: "20px",
-              background: "#4CAF50",
+              background: "var(--pink-primary)",
               color: "#fff",
             }}
             onClick={() => setShowModal(true)}

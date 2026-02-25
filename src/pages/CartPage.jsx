@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "../styles/CartPage.css";
+import { formatVND } from "../utils/currency";
 
 const CART_KEY = "cart";
 
@@ -67,7 +68,7 @@ export default function CartPage() {
                   <h3>{item.name}</h3>
                   <p>Brand: {item.brand}</p>
                   <p>Color: {item.color}</p>
-                  <p>Price: ${item.price}</p>
+                  <p>Price: {formatVND(item.price)}</p>
                 </div>
 
                 <div className="cart-item-actions">
@@ -89,7 +90,7 @@ export default function CartPage() {
           </div>
 
           <div className="cart-summary">
-            <h3>Total: ${totalPrice}</h3>
+            <h3>Total: {formatVND(totalPrice)}</h3>
             <button className="clear-btn" onClick={handleClearCart}>
               Clear cart
             </button>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "../styles/CustomerProfile.css";
 
 export default function CustomerProfile() {
   const [user, setUser] = useState(null);
@@ -27,103 +28,89 @@ export default function CustomerProfile() {
     alert("Profile updated!");
   };
 
-  if (!user) return <h2>No user data</h2>;
+  if (!user) return <h2 className="profile-empty">No user data</h2>;
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h2>Customer Profile</h2>
+    <div className="customer-profile-page">
+      <div className="customer-profile-container">
+        <h2 className="profile-title">Customer Profile</h2>
 
-      <div style={cardStyle}>
+        <div className="profile-card">
         {/* AVATAR */}
-        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <div className="profile-avatar-wrap">
           <img
             src={user.avatar}
             alt="avatar"
             width="120"
             height="120"
-            style={{ borderRadius: "50%" }}
+            className="profile-avatar-img"
           />
         </div>
 
-        <label>Username</label>
-        <input value={user.username} disabled style={inputStyle} />
+          <label className="profile-label">Username</label>
+          <input
+            value={user.username}
+            disabled
+            className="profile-input profile-input-readonly"
+          />
 
-        <label>Full Name</label>
-        <input
-          value={user.name || ""}
-          disabled={!editMode}
-          onChange={(e) =>
-            setUser({ ...user, name: e.target.value })
-          }
-          style={inputStyle}
-        />
+          <label className="profile-label">Full Name</label>
+          <input
+            value={user.name || ""}
+            disabled={!editMode}
+            onChange={(e) => setUser({ ...user, name: e.target.value })}
+            className={`profile-input ${!editMode ? "profile-input-readonly" : ""}`}
+          />
 
-        <label>Email</label>
-        <input
-          value={user.email || ""}
-          disabled={!editMode}
-          onChange={(e) =>
-            setUser({ ...user, email: e.target.value })
-          }
-          style={inputStyle}
-        />
+          <label className="profile-label">Email</label>
+          <input
+            value={user.email || ""}
+            disabled={!editMode}
+            onChange={(e) => setUser({ ...user, email: e.target.value })}
+            className={`profile-input ${!editMode ? "profile-input-readonly" : ""}`}
+          />
 
-        <label>Phone</label>
-        <input
-          value={user.phone || ""}
-          disabled={!editMode}
-          onChange={(e) =>
-            setUser({ ...user, phone: e.target.value })
-          }
-          style={inputStyle}
-        />
+          <label className="profile-label">Phone</label>
+          <input
+            value={user.phone || ""}
+            disabled={!editMode}
+            onChange={(e) => setUser({ ...user, phone: e.target.value })}
+            className={`profile-input ${!editMode ? "profile-input-readonly" : ""}`}
+          />
 
-        <label>Address</label>
-        <input
-          value={user.address || ""}
-          disabled={!editMode}
-          onChange={(e) =>
-            setUser({ ...user, address: e.target.value })
-          }
-          style={inputStyle}
-        />
+          <label className="profile-label">Address</label>
+          <input
+            value={user.address || ""}
+            disabled={!editMode}
+            onChange={(e) => setUser({ ...user, address: e.target.value })}
+            className={`profile-input ${!editMode ? "profile-input-readonly" : ""}`}
+          />
 
-        <label>Status</label>
-        <input value={user.status} disabled style={inputStyle} />
+          <label className="profile-label">Status</label>
+          <input
+            value={user.status}
+            disabled
+            className="profile-input profile-input-readonly"
+          />
 
-        <div style={{ marginTop: "20px" }}>
-          {!editMode ? (
-            <button onClick={() => setEditMode(true)}>
-              Edit Profile
-            </button>
-          ) : (
-            <>
-              <button onClick={handleSave} style={{ marginRight: "10px" }}>
+          <div className="profile-actions">
+            {!editMode ? (
+              <button className="profile-btn profile-btn-primary" onClick={() => setEditMode(true)}>
+                Edit Profile
+              </button>
+            ) : (
+              <>
+                <button className="profile-btn profile-btn-primary" onClick={handleSave}>
                 Save
-              </button>
-              <button onClick={() => setEditMode(false)}>
+                </button>
+                <button className="profile-btn profile-btn-secondary" onClick={() => setEditMode(false)}>
                 Cancel
-              </button>
-            </>
-          )}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-const cardStyle = {
-  marginTop: "20px",
-  background: "#fff",
-  padding: "20px",
-  borderRadius: "8px",
-  maxWidth: "500px",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "8px",
-  marginTop: "5px",
-  marginBottom: "15px",
-};

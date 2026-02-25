@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import users from "../data/mockUsers";
+import "../styles/LoginPage.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -47,18 +48,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={styles.container}>
-      <form style={styles.form} onSubmit={handleLogin}>
-        <h2>Login</h2>
+    <div className="login-page">
+      <form className="login-form" onSubmit={handleLogin}>
+        <h2 className="login-title">Login</h2>
 
-        {error && <p style={styles.error}>{error}</p>}
+        {error && <p className="login-error">{error}</p>}
 
         <input
           type="text"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          style={styles.input}
+          className="login-input"
         />
 
         <input
@@ -66,50 +67,21 @@ export default function LoginPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
+          className="login-input"
         />
 
-        <button type="submit" style={styles.button}>
+        <button type="submit" className="login-btn login-btn-primary">
           Login
+        </button>
+
+        <button
+          type="button"
+          className="login-btn login-btn-secondary"
+          onClick={() => navigate("/")}
+        >
+          Cancel
         </button>
       </form>
     </div>
   );
 }
-
-/* ================= STYLES ================= */
-
-const styles = {
-  container: {
-    minHeight: "80vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  form: {
-    width: "320px",
-    padding: "30px",
-    borderRadius: "10px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-    backgroundColor: "#fff",
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-  },
-  input: {
-    padding: "10px",
-    fontSize: "16px",
-  },
-  button: {
-    padding: "10px",
-    fontSize: "16px",
-    backgroundColor: "#1976d2",
-    color: "#fff",
-    border: "none",
-    cursor: "pointer",
-  },
-  error: {
-    color: "red",
-    fontSize: "14px",
-  },
-};

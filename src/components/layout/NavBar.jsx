@@ -62,7 +62,15 @@ export default function NavBar() {
 
           {/* CUSTOMER ONLY */}
           {user?.role === "CUSTOMER" && (
-            <Cart />
+            <>
+              <button
+                className="btn design-glasses-btn"
+                onClick={() => navigate("/design-glasses")}
+              >
+                Design Glasses
+              </button>
+              <Cart />
+            </>
           )}
 
           {/* LOGGED IN (ALL ROLES) */}
@@ -81,6 +89,7 @@ export default function NavBar() {
                   {user.role === "CUSTOMER" ? (
                     <>
                       <div onClick={() => navigate("/profile")}>Profile</div>
+                      <div onClick={() => navigate("/eye-profile")}>Eye Profile</div>
                       <div onClick={() => navigate("/orders")}>
                         Order History
                       </div>

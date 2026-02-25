@@ -11,7 +11,7 @@
 
 .cart-empty {
   text-align: center;
-  color: #666;
+  color: var(--pink-deep);
 }
 
 .cart-list {
@@ -22,7 +22,7 @@
 
 .cart-item {
   background: #fff;
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--pink-soft);
   border-radius: 10px;
   padding: 14px;
   display: flex;
@@ -66,9 +66,9 @@
 .qty-control button {
   width: 28px;
   height: 28px;
-  border: 1px solid #cfcfcf;
+  border: 1px solid var(--pink-soft);
   border-radius: 6px;
-  background: #f8f8f8;
+  background: var(--pink-soft);
   cursor: pointer;
 }
 
@@ -76,7 +76,7 @@
   border: none;
   border-radius: 8px;
   padding: 8px 12px;
-  background: #c62828;
+  background: var(--pink-primary);
   color: #fff;
   cursor: pointer;
 }
@@ -92,7 +92,7 @@
   border: none;
   border-radius: 8px;
   padding: 10px 14px;
-  background: #333;
+  background: var(--pink-primary);
   color: #fff;
   cursor: pointer;
 }
@@ -121,3 +121,4 @@
     align-items: flex-start;
   }
 }
+

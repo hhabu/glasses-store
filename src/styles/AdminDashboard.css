@@ -1,13 +1,13 @@
 .admin-dashboard {
   display: flex;
   min-height: 100vh;
-  background-color: #f5f6fa;
+  background-color: var(--pink-soft);
 }
 
 /* SIDEBAR */
 .admin-sidebar {
   width: 260px;
-  background-color: #1e272e;
+  background-color: var(--pink-primary);
   color: white;
   padding: 20px;
   display: flex;
@@ -31,12 +31,12 @@
 }
 
 .admin-sidebar button:hover {
-  background-color: #485460;
+  background-color: var(--pink-deep);
 }
 
 .admin-sidebar button.active {
-  background-color: #0fbcf9;
-  color: black;
+  background-color: var(--pink-soft);
+  color: var(--pink-primary);
   font-weight: bold;
 }
 
@@ -49,5 +49,6 @@
 
 .admin-content h2 {
   font-size: 26px;
-  color: #2f3640;
+  color: var(--pink-primary);
 }
+

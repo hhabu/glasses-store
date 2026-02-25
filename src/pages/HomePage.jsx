@@ -2,10 +2,25 @@
 
 import glassesList from "../data/GlassesList";
 import GlassesCard from "../components/glasses/GlassesCard";
+import { useNavigate } from "react-router-dom";
 import "../styles/Glasses.css";
 
 export default function HomePage() {
+  const navigate = useNavigate();
+
   const handleAddToCart = (glasses) => {
+    let user = null;
+    try {
+      user = JSON.parse(localStorage.getItem("user"));
+    } catch {
+      user = null;
+    }
+
+    if (!user || user.role !== "CUSTOMER") {
+      navigate("/login");
+      return;
+    }
+
     const cartItem = {
       id: glasses.id,
       name: glasses.name,

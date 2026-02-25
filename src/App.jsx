@@ -10,6 +10,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import CustomerProfile from "./pages/CustomerProfile";
 import OrderHistory from "./pages/OrderHistory";
 import ReturnRequest from "./pages/ReturnRequest";
+import DesignGlasses from "./pages/DesignGlasses";
+import EyeProfile from "./pages/EyeProfile";
 
 function App() {
   const location = useLocation();
@@ -43,8 +45,10 @@ function App() {
           element={user ? <Navigate to="/" replace /> : <LoginPage />}
         />
         <Route path="/profile" element={<CustomerProfile />} />
+        <Route path="/eye-profile" element={<EyeProfile />} />
         <Route path="/orders" element={<OrderHistory />} />
         <Route path="/returns" element={<ReturnRequest />} />
+        <Route path="/design-glasses" element={<DesignGlasses />} />
 
         {/* SALES ONLY */}
         <Route
