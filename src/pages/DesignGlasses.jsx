@@ -49,7 +49,7 @@ export default function DesignGlasses() {
         </div>
       ) : (
         <p style={styles.warning}>
-          Chua co san pham nao duoc chon. Hay chon "Design glass" tu modal san pham.
+          No product selected yet. Please choose "Design glass" from a product modal.
         </p>
       )}
 
