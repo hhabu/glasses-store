@@ -398,3 +398,55 @@ body {
   }
 }
 
+/* Handle phone landscape and short-height viewports */
+@media (max-width: 992px) and (pointer: coarse), (max-height: 540px) and (orientation: landscape) {
+  .marketplace-modal {
+    max-width: 96vw;
+  }
+
+  .marketplace-modal-body {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .marketplace-main-image {
+    height: clamp(220px, 52vh, 340px);
+  }
+
+  .marketplace-title {
+    font-size: clamp(22px, 4vw, 30px);
+  }
+
+  .marketplace-rating-score {
+    font-size: 18px;
+  }
+
+  .marketplace-reviews,
+  .marketplace-price-old,
+  .marketplace-discount,
+  .marketplace-info-list p {
+    font-size: 15px;
+  }
+
+  .marketplace-price-now {
+    font-size: clamp(26px, 5vw, 34px);
+  }
+
+  .marketplace-flash {
+    font-size: 16px;
+    padding: 8px 12px;
+  }
+
+  .marketplace-actions {
+    margin-top: 16px;
+  }
+
+  .marketplace-btn-add,
+  .marketplace-btn-buy {
+    min-width: 160px;
+    height: 44px;
+    font-size: 14px;
+  }
+}
+
