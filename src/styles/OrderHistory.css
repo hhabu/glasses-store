@@ -1,0 +1,76 @@
+.order-history-page {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 0 20px 30px;
+}
+
+.order-history-title {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.order-history-success {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #e7f7eb;
+  color: #17643a;
+}
+
+.order-history-empty {
+  text-align: center;
+}
+
+.order-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.order-card {
+  background: #fff;
+  border: 1px solid var(--pink-soft);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.order-card-header h3 {
+  margin: 0;
+}
+
+.order-customer p {
+  margin: 4px 0;
+}
+
+.order-items {
+  margin-top: 8px;
+  border-top: 1px solid var(--pink-soft);
+  border-bottom: 1px solid var(--pink-soft);
+  padding: 8px 0;
+}
+
+.order-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.order-total {
+  margin-top: 8px;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .order-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

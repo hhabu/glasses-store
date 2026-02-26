@@ -12,6 +12,7 @@ import OrderHistory from "./pages/OrderHistory";
 import ReturnRequest from "./pages/ReturnRequest";
 import DesignGlasses from "./pages/DesignGlasses";
 import EyeProfile from "./pages/EyeProfile";
+import CheckoutPage from "./pages/CheckoutPage";
 
 function App() {
   const location = useLocation();
@@ -49,6 +50,14 @@ function App() {
         <Route path="/orders" element={<OrderHistory />} />
         <Route path="/returns" element={<ReturnRequest />} />
         <Route path="/design-glasses" element={<DesignGlasses />} />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <CheckoutPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* SALES ONLY */}
         <Route

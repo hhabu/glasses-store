@@ -88,11 +88,25 @@
   align-items: center;
 }
 
+.cart-summary-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .clear-btn {
   border: none;
   border-radius: 8px;
   padding: 10px 14px;
   background: var(--pink-primary);
+  color: #fff;
+  cursor: pointer;
+}
+
+.checkout-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #111827;
   color: #fff;
   cursor: pointer;
 }
@@ -119,6 +133,15 @@
     flex-direction: column;
     gap: 12px;
     align-items: flex-start;
+  }
+
+  .cart-summary-actions {
+    width: 100%;
+  }
+
+  .clear-btn,
+  .checkout-btn {
+    flex: 1;
   }
 }
 

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/CartPage.css";
 import { formatVND } from "../utils/currency";
 
@@ -15,6 +16,7 @@ function readCartFromStorage() {
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState(readCartFromStorage);
+  const navigate = useNavigate();
 
   const saveCart = (nextCart) => {
     setCartItems(nextCart);
@@ -91,9 +93,17 @@ export default function CartPage() {
 
           <div className="cart-summary">
             <h3>Total: {formatVND(totalPrice)}</h3>
-            <button className="clear-btn" onClick={handleClearCart}>
-              Clear cart
-            </button>
+            <div className="cart-summary-actions">
+              <button className="clear-btn" onClick={handleClearCart}>
+                Clear cart
+              </button>
+              <button
+                className="checkout-btn"
+                onClick={() => navigate("/checkout")}
+              >
+                Checkout
+              </button>
+            </div>
           </div>
         </>
       )}
