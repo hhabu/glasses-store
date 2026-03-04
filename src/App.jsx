@@ -6,6 +6,7 @@ import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
 import SalesDashboard from "./pages/SalesDashboard";
+import OperationDashboard from "./pages/OperationDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import CustomerProfile from "./pages/CustomerProfile";
 import OrderHistory from "./pages/OrderHistory";
@@ -13,6 +14,7 @@ import ReturnRequest from "./pages/ReturnRequest";
 import DesignGlasses from "./pages/DesignGlasses";
 import EyeProfile from "./pages/EyeProfile";
 import CheckoutPage from "./pages/CheckoutPage";
+import PaymentPage from "./pages/PaymentPage";
 
 function App() {
   const location = useLocation();
@@ -58,6 +60,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <PaymentPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* SALES ONLY */}
         <Route
@@ -65,6 +75,16 @@ function App() {
           element={
             <ProtectedRoute allowRoles={["SALES"]}>
               <SalesDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* OPERATION ONLY */}
+        <Route
+          path="/operation"
+          element={
+            <ProtectedRoute allowRoles={["OPERATION"]}>
+              <OperationDashboard />
             </ProtectedRoute>
           }
         />

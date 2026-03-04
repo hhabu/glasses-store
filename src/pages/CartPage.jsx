@@ -70,6 +70,7 @@ export default function CartPage() {
                   <h3>{item.name}</h3>
                   <p>Brand: {item.brand}</p>
                   <p>Color: {item.color}</p>
+                  {item.lensName ? <p>Lens: {item.lensName}</p> : null}
                   <p>Price: {formatVND(item.price)}</p>
                 </div>
 

@@ -36,19 +36,6 @@ function getEmptyForm() {
   };
 }
 
-function profileToForm(profile) {
-  return {
-    profileName: profile.profileName || "",
-    leftMyopia: profile.leftEye?.myopia ?? "",
-    leftAstigmatism: profile.leftEye?.astigmatism ?? "",
-    leftHyperopia: profile.leftEye?.hyperopia ?? "",
-    rightMyopia: profile.rightEye?.myopia ?? "",
-    rightAstigmatism: profile.rightEye?.astigmatism ?? "",
-    rightHyperopia: profile.rightEye?.hyperopia ?? "",
-    note: profile.note || "",
-  };
-}
-
 function buildEyeProfileFromForm(form) {
   return {
     profileName: form.profileName.trim(),
@@ -72,7 +59,6 @@ export default function EyeProfile() {
   const [profiles, setProfiles] = useState(() => readProfiles(storageKey));
   const [form, setForm] = useState(() => getEmptyForm());
   const [message, setMessage] = useState("");
-  const [editingProfileId, setEditingProfileId] = useState(null);
 
   useEffect(() => {
     setProfiles(readProfiles(storageKey));
@@ -93,25 +79,13 @@ export default function EyeProfile() {
     }
 
     const payload = buildEyeProfileFromForm(form);
-    let nextProfiles = profiles;
-
-    if (editingProfileId) {
-      nextProfiles = profiles.map((profile) =>
-        profile.id === editingProfileId
-          ? { ...profile, ...payload, updatedAt: new Date().toISOString() }
-          : profile
-      );
-      setMessage("Eye profile updated.");
-      setEditingProfileId(null);
-    } else {
-      const newProfile = {
-        id: Date.now(),
-        ...payload,
-        createdAt: new Date().toISOString(),
-      };
-      nextProfiles = [newProfile, ...profiles];
-      setMessage("Eye profile saved.");
-    }
+    const newProfile = {
+      id: Date.now(),
+      ...payload,
+      createdAt: new Date().toISOString(),
+    };
+    const nextProfiles = [newProfile, ...profiles];
+    setMessage("Eye profile saved.");
 
     setProfiles(nextProfiles);
     localStorage.setItem(storageKey, JSON.stringify(nextProfiles));
@@ -122,22 +96,6 @@ export default function EyeProfile() {
     const nextProfiles = profiles.filter((profile) => profile.id !== id);
     setProfiles(nextProfiles);
     localStorage.setItem(storageKey, JSON.stringify(nextProfiles));
-    if (editingProfileId === id) {
-      setEditingProfileId(null);
-      setForm(getEmptyForm());
-    }
-  };
-
-  const handleEdit = (profile) => {
-    setEditingProfileId(profile.id);
-    setForm(profileToForm(profile));
-    setMessage("Editing selected profile.");
-  };
-
-  const handleCancelEdit = () => {
-    setEditingProfileId(null);
-    setForm(getEmptyForm());
-    setMessage("");
   };
 
   if (!isCustomer) {
@@ -234,18 +192,7 @@ export default function EyeProfile() {
           />
 
           <div className="eye-form-actions">
-            <button type="submit">
-              {editingProfileId ? "Update Eye Profile" : "Save Eye Profile"}
-            </button>
-            {editingProfileId ? (
-              <button
-                type="button"
-                className="eye-cancel-btn"
-                onClick={handleCancelEdit}
-              >
-                Cancel Edit
-              </button>
-            ) : null}
+            <button type="submit">Save Eye Profile</button>
           </div>
           {message ? <p className="eye-profile-message">{message}</p> : null}
         </form>
@@ -260,13 +207,6 @@ export default function EyeProfile() {
                 <div className="eye-profile-card-head">
                   <h4>{profile.profileName}</h4>
                   <div className="eye-card-actions">
-                    <button
-                      type="button"
-                      className="eye-edit-btn"
-                      onClick={() => handleEdit(profile)}
-                    >
-                      Edit
-                    </button>
                     <button
                       type="button"
                       className="eye-delete-btn"

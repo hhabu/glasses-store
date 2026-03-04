@@ -1,12 +1,25 @@
 // src/pages/HomePage.jsx
-
-import glassesList from "../data/GlassesList";
 import GlassesCard from "../components/glasses/GlassesCard";
-import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "../styles/Glasses.css";
+import { readCatalogProducts } from "../utils/productCatalog";
+import { computeProductDisplayPricing } from "../utils/pricing";
+
+function normalizeText(value) {
+  return (value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchKeyword = searchParams.get("q") || "";
+  const products = useMemo(() => readCatalogProducts(), []);
 
   const handleAddToCart = (glasses) => {
     let user = null;
@@ -27,7 +40,9 @@ export default function HomePage() {
       brand: glasses.brand,
       color: glasses.color,
       image: glasses.image,
-      price: glasses.price,
+      price: glasses.pricingView?.finalPrice ?? glasses.price,
+      originalPrice: glasses.pricingView?.originalPrice ?? glasses.price,
+      discountPercent: glasses.pricingView?.discountPercent ?? 0,
       quantity: 1,
     };
 
@@ -43,15 +58,40 @@ export default function HomePage() {
     localStorage.setItem("cart", JSON.stringify(currentCart));
   };
 
+  const filteredGlasses = useMemo(() => {
+    const normalizedQuery = normalizeText(searchKeyword);
+    if (!normalizedQuery) {
+      return products.map((item) => computeProductDisplayPricing(item));
+    }
+
+    const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+
+    return products
+      .filter((item) => {
+      const searchableText = normalizeText(
+        `${item.name} ${item.brand} ${item.color} ${item.category}`
+      );
+
+      return queryTokens.every((token) => searchableText.includes(token));
+      })
+      .map((item) => computeProductDisplayPricing(item));
+  }, [products, searchKeyword]);
+
   return (
     <div className="glasses-container">
       <h2 className="title">Glasses Collection</h2>
 
-      <div className="glasses-grid">
-        {glassesList.map((g) => (
-          <GlassesCard key={g.id} glasses={g} onAddToCart={handleAddToCart} />
-        ))}
-      </div>
+      {filteredGlasses.length === 0 ? (
+        <p className="glasses-empty">
+          No products found for "{searchParams.get("q") || ""}".
+        </p>
+      ) : (
+        <div className="glasses-grid">
+          {filteredGlasses.map((g) => (
+            <GlassesCard key={g.id} glasses={g} onAddToCart={handleAddToCart} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

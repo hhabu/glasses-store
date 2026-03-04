@@ -1,33 +1,30 @@
 // components/admin/ProductConfigManagement.jsx
 import { useState, useEffect } from "react";
-import glassesList from "../../data/GlassesList";
 import AdminProductCard from "./AdminProductCard";
+import { readCatalogProducts, saveCatalogProducts } from "../../utils/productCatalog";
 
-export default function ProductConfigManagement() {
+export default function ProductConfigManagement({
+  title = "Product Configuration Management",
+  mode = "basic",
+}) {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("admin_products");
-    if (stored) {
-      setProducts(JSON.parse(stored));
-    } else {
-      setProducts(glassesList);
-      localStorage.setItem("admin_products", JSON.stringify(glassesList));
-    }
+    const catalog = readCatalogProducts();
+    setProducts(catalog);
   }, []);
 
   const handleSaveProduct = (updatedProduct) => {
     const updatedList = products.map((p) =>
       p.id === updatedProduct.id ? updatedProduct : p
     );
-
-    setProducts(updatedList);
-    localStorage.setItem("admin_products", JSON.stringify(updatedList));
+    const normalized = saveCatalogProducts(updatedList);
+    setProducts(normalized);
   };
 
   return (
     <>
-      <h2>Product Configuration Management</h2>
+      <h2>{title}</h2>
 
       <div className="glasses-grid">
         {products.map((product) => (
@@ -35,6 +32,7 @@ export default function ProductConfigManagement() {
             key={product.id}
             product={product}
             onSave={handleSaveProduct}
+            mode={mode}
           />
         ))}
       </div>

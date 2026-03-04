@@ -1,6 +1,6 @@
 // components/admin/UserManagement.jsx
 import { useState, useEffect } from "react";
-import mockUsers from "../../data/mockUsers";
+import { readUsers, saveUsers } from "../../services/userService";
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -18,13 +18,7 @@ export default function UserManagement() {
 
   /* ================= LOAD USERS ================= */
   useEffect(() => {
-    const stored = localStorage.getItem("admin_users");
-    if (stored) {
-      setUsers(JSON.parse(stored));
-    } else {
-      setUsers(mockUsers);
-      localStorage.setItem("admin_users", JSON.stringify(mockUsers));
-    }
+    setUsers(readUsers());
   }, []);
 
   /* ================= FILTER ================= */
@@ -49,10 +43,16 @@ export default function UserManagement() {
       createDate: new Date().toISOString().split("T")[0],
     };
 
-    const updatedList = [...users, newAccount];
+    const isDuplicateUsername = users.some(
+      (u) => u.username.toLowerCase() === newUser.username.trim().toLowerCase()
+    );
+    if (isDuplicateUsername) {
+      alert("Username already exists");
+      return;
+    }
 
+    const updatedList = saveUsers([...users, newAccount]);
     setUsers(updatedList);
-    localStorage.setItem("admin_users", JSON.stringify(updatedList));
 
     setShowModal(false);
     setNewUser({
@@ -71,10 +71,7 @@ export default function UserManagement() {
     );
 
     setUsers(updatedUsers);
-    localStorage.setItem(
-      "admin_users",
-      JSON.stringify(updatedUsers)
-    );
+    saveUsers(updatedUsers);
   };
 
   return (

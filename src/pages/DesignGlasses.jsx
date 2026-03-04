@@ -1,29 +1,90 @@
-import { useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import lensList from "../data/LensList";
 import { formatVND } from "../utils/currency";
 
+function readSelectedProductFromStorage() {
+  try {
+    return JSON.parse(localStorage.getItem("selectedDesignProduct"));
+  } catch {
+    return null;
+  }
+}
+
 export default function DesignGlasses() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [selectedLensId, setSelectedLensId] = useState(lensList[0]?.id || "");
+  const [selectedProduct, setSelectedProduct] = useState(() =>
+    location.state?.selectedProduct || readSelectedProductFromStorage()
+  );
 
-  const selectedProduct = useMemo(() => {
+  useEffect(() => {
     if (location.state?.selectedProduct) {
+      setSelectedProduct(location.state.selectedProduct);
       localStorage.setItem(
         "selectedDesignProduct",
         JSON.stringify(location.state.selectedProduct)
       );
-      return location.state.selectedProduct;
-    }
-
-    try {
-      return JSON.parse(localStorage.getItem("selectedDesignProduct"));
-    } catch {
-      return null;
     }
   }, [location.state]);
 
   const selectedLens = lensList.find((lens) => lens.id === selectedLensId);
+
+  const handleRemoveSelectedProduct = () => {
+    localStorage.removeItem("selectedDesignProduct");
+    setSelectedProduct(null);
+  };
+
+  const handleAddDesignedToCart = () => {
+    if (!selectedProduct || !selectedLens) {
+      return;
+    }
+
+    let user = null;
+    try {
+      user = JSON.parse(localStorage.getItem("user"));
+    } catch {
+      user = null;
+    }
+
+    if (!user || user.role !== "CUSTOMER") {
+      navigate("/login");
+      return;
+    }
+
+    const cartItemId = `${selectedProduct.id}-${selectedLens.id}`;
+    const cartItem = {
+      id: cartItemId,
+      frameId: selectedProduct.id,
+      lensId: selectedLens.id,
+      name: `${selectedProduct.name} + ${selectedLens.name}`,
+      brand: selectedProduct.brand,
+      color: selectedProduct.color,
+      image: selectedProduct.image,
+      price: selectedProduct.price + selectedLens.price,
+      quantity: 1,
+      lensName: selectedLens.name,
+    };
+
+    let currentCart = [];
+    try {
+      const stored = JSON.parse(localStorage.getItem("cart"));
+      currentCart = Array.isArray(stored) ? stored : [];
+    } catch {
+      currentCart = [];
+    }
+
+    const existingIndex = currentCart.findIndex((item) => item.id === cartItemId);
+    if (existingIndex >= 0) {
+      currentCart[existingIndex].quantity += 1;
+    } else {
+      currentCart.push(cartItem);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(currentCart));
+    alert("Added designed glasses to cart.");
+  };
 
   return (
     <div style={styles.container}>
@@ -45,12 +106,20 @@ export default function DesignGlasses() {
             <p style={styles.text}><strong>Brand:</strong> {selectedProduct.brand}</p>
             <p style={styles.text}><strong>Color:</strong> {selectedProduct.color}</p>
             <p style={styles.text}><strong>Price:</strong> {formatVND(selectedProduct.price)}</p>
+            <button style={styles.removeButton} onClick={handleRemoveSelectedProduct}>
+              Remove selected frame
+            </button>
           </div>
         </div>
       ) : (
-        <p style={styles.warning}>
-          No product selected yet. Please choose "Design glass" from a product modal.
-        </p>
+        <div style={styles.warningBox}>
+          <p style={styles.warning}>
+            No product selected yet. Please choose "Design glass" from a product modal.
+          </p>
+          <button style={styles.goHomeButton} onClick={() => navigate("/")}>
+            Go to HomePage to choose frames
+          </button>
+        </div>
       )}
 
       <h3 style={styles.sectionTitle}>Choose lens</h3>
@@ -86,6 +155,9 @@ export default function DesignGlasses() {
           <p style={styles.totalPrice}>
             Estimated total: {formatVND(selectedProduct.price + selectedLens.price)}
           </p>
+          <button style={styles.addToCartButton} onClick={handleAddDesignedToCart}>
+            Add To Cart
+          </button>
         </div>
       ) : null}
     </div>
@@ -139,7 +211,18 @@ const styles = {
     borderRadius: "10px",
     padding: "12px",
     color: "#8a2c4f",
+    marginBottom: "10px",
+  },
+  warningBox: {
     marginBottom: "20px",
+  },
+  goHomeButton: {
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    backgroundColor: "var(--pink-primary)",
+    color: "#fff",
+    cursor: "pointer",
   },
   lensGrid: {
     display: "grid",
@@ -177,5 +260,23 @@ const styles = {
     marginTop: "8px",
     color: "#8a2c4f",
     fontWeight: 700,
+  },
+  removeButton: {
+    marginTop: "10px",
+    border: "none",
+    borderRadius: "8px",
+    padding: "8px 12px",
+    backgroundColor: "#111827",
+    color: "#fff",
+    cursor: "pointer",
+  },
+  addToCartButton: {
+    marginTop: "10px",
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    backgroundColor: "var(--pink-primary)",
+    color: "#fff",
+    cursor: "pointer",
   },
 };

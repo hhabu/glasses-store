@@ -1,50 +1,37 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import users from "../data/mockUsers";
 import "../styles/LoginPage.css";
+import { loginWithCredentials } from "../services/userService";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   const handleLogin = (e) => {
     e.preventDefault();
+    const result = loginWithCredentials(username, password);
 
-    const user = users.find(
-      (u) => u.username === username && u.password === password
-    );
-
-    if (!user) {
-      setError("Invalid username or password");
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
 
-    // Lưu user 
-    localStorage.setItem("user", JSON.stringify(user));
-    navigate("/");
-    // Redirect theo role
-    // switch (user.role) {
-    //   case "CUSTOMER":
-    //     navigate("/");
-    //     break;
-    //   case "SALES":
-    //     navigate("/sales");
-    //     break;
-    //   case "OPERATION":
-    //     navigate("/operation");
-    //     break;
-    //   case "MANAGER":
-    //     navigate("/manager");
-    //     break;
-    //   case "ADMIN":
-    //     navigate("/admin");
-    //     break;
-    //   default:
-    //     navigate("/");
-    // }
+    const user = result.user;
+    switch (user.role) {
+      case "ADMIN":
+        navigate("/admin");
+        break;
+      case "SALES":
+        navigate("/sales");
+        break;
+      case "OPERATION":
+        navigate("/operation");
+        break;
+      default:
+        navigate("/");
+    }
   };
 
   return (

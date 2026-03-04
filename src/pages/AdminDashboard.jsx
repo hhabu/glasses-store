@@ -23,13 +23,18 @@ export default function AdminDashboard() {
         return <h2>Business Rules & Policies Management</h2>;
 
       case "PRODUCT_CONFIG":
-        return <ProductConfigManagement />;
+        return <ProductConfigManagement mode="basic" />;
 
       case "USER_MANAGEMENT":
         return <UserManagement />;
 
       case "PRICING":
-        return <h2>Pricing, Combo & Promotion Management</h2>;
+        return (
+          <ProductConfigManagement
+            title="Pricing, Combo & Promotion Management"
+            mode="pricing"
+          />
+        );
 
       case "REVENUE":
         return <h2>Revenue Management</h2>;

@@ -66,12 +66,6 @@
   margin-top: 10px;
 }
 
-.eye-cancel-btn {
-  background: #fff;
-  color: #8f2f5a;
-  border: 1px solid #8f2f5a;
-}
-
 .eye-profile-list {
   margin-top: 20px;
   border-top: 1px solid #f3d5e2;
@@ -104,13 +98,6 @@
 .eye-card-actions {
   display: flex;
   gap: 8px;
-}
-
-.eye-edit-btn {
-  background: #fff;
-  border: 1px solid #8f2f5a;
-  color: #8f2f5a;
-  padding: 6px 10px;
 }
 
 .eye-delete-btn {

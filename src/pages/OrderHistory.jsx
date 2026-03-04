@@ -27,6 +27,11 @@ export default function OrderHistory() {
           Order placed successfully. Order ID: {location.state?.orderId}
         </p>
       ) : null}
+      {location.state?.justPaid ? (
+        <p className="order-history-success">
+          Payment successful. Order ID: {location.state?.orderId}
+        </p>
+      ) : null}
 
       {orders.length === 0 ? (
         <p className="order-history-empty">No orders yet.</p>
@@ -57,6 +62,14 @@ export default function OrderHistory() {
 
               <div className="order-total">
                 <strong>Total: {formatVND(order.totalPrice || 0)}</strong>
+              </div>
+              <div className="order-total">
+                <strong>Order status: {order.status || "-"}</strong>
+              </div>
+              <div className="order-total">
+                <strong>
+                  Payment: {order.payment?.method || "-"} / {order.payment?.status || "-"}
+                </strong>
               </div>
             </article>
           ))}
