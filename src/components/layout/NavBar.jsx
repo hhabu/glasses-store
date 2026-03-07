@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import Cart from "./Cart";
 import "../../styles/NavBar.css";
@@ -15,12 +15,26 @@ export default function NavBar() {
   }
   const [showMenu, setShowMenu] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState(searchParams.get("q") || "");
+  const profileMenuRef = useRef(null);
 
   useEffect(() => {
     if (location.pathname === "/") {
       setSearchKeyword(searchParams.get("q") || "");
     }
   }, [location.pathname, searchParams]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
     setShowMenu(false);
@@ -102,7 +116,7 @@ export default function NavBar() {
 
           {/* LOGGED IN (ALL ROLES) */}
           {user && user.avatar && (
-            <div className="profile-wrapper">
+            <div className="profile-wrapper" ref={profileMenuRef}>
               <img
                 src={user.avatar}
                 alt="profile"
