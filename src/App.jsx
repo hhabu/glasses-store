@@ -3,6 +3,7 @@ import NavBar from "./components/layout/NavBar";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 import HomePage from "./pages/HomePage";
+import ProductsPage from "./pages/ProductsPage";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -44,6 +45,7 @@ function App() {
       <Routes>
         {/* PUBLIC */}
         <Route path="/" element={<HomePage />} />
+        <Route path="/products" element={<ProductsPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route
           path="/login"
