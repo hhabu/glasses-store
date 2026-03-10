@@ -5,6 +5,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import SalesDashboard from "./pages/SalesDashboard";
 import OperationDashboard from "./pages/OperationDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -30,10 +31,11 @@ function App() {
   const isDashboardPage = dashboardPaths.some((path) =>
     location.pathname.startsWith(path)
   );
-  const isLoginPage = location.pathname === "/login";
+  const isAuthPage =
+    location.pathname === "/login" || location.pathname === "/register";
 
   // Hien NavBar cho ca guest va user, chi an o dashboard role va trang login
-  const showNavBar = !isDashboardPage && !isLoginPage;
+  const showNavBar = !isDashboardPage && !isAuthPage;
 
   return (
     <>
@@ -46,6 +48,10 @@ function App() {
         <Route
           path="/login"
           element={user ? <Navigate to="/" replace /> : <LoginPage />}
+        />
+        <Route
+          path="/register"
+          element={user ? <Navigate to="/" replace /> : <RegisterPage />}
         />
         <Route path="/profile" element={<CustomerProfile />} />
         <Route path="/eye-profile" element={<EyeProfile />} />

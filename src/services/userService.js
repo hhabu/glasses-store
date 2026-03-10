@@ -52,3 +52,37 @@ export function loginWithCredentials(username, password) {
   localStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
   return { ok: true, user };
 }
+
+export function registerCustomer({ username, password }) {
+  const trimmedUsername = username?.trim() || "";
+  const trimmedPassword = password?.trim() || "";
+
+  if (!trimmedUsername || !trimmedPassword) {
+    return { ok: false, message: "Username and password are required" };
+  }
+
+  const users = readUsers();
+  const exists = users.some(
+    (u) => u.username?.toLowerCase() === trimmedUsername.toLowerCase()
+  );
+
+  if (exists) {
+    return { ok: false, message: "Username already exists" };
+  }
+
+  const nextId =
+    users.length > 0 ? Math.max(...users.map((u) => u.id || 0)) + 1 : 1;
+  const createDate = new Date().toISOString().slice(0, 10);
+  const newUser = {
+    id: nextId,
+    username: trimmedUsername,
+    password: trimmedPassword,
+    role: "CUSTOMER",
+    name: trimmedUsername,
+    status: "ACTIVE",
+    createDate,
+  };
+
+  saveUsers([...users, newUser]);
+  return { ok: true, user: newUser };
+}

@@ -1,43 +1,37 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/LoginPage.css";
-import { loginWithCredentials } from "../services/userService";
+import { registerCustomer } from "../services/userService";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    const result = loginWithCredentials(username, password);
+  const handleRegister = (event) => {
+    event.preventDefault();
+    setError("");
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    const result = registerCustomer({ username, password });
     if (!result.ok) {
       setError(result.message);
       return;
     }
 
-    const user = result.user;
-    switch (user.role) {
-      case "ADMIN":
-        navigate("/admin");
-        break;
-      case "SALES":
-        navigate("/sales");
-        break;
-      case "OPERATION":
-        navigate("/operation");
-        break;
-      default:
-        navigate("/");
-    }
+    navigate("/login");
   };
 
   return (
     <div className="login-page">
-      <form className="login-form" onSubmit={handleLogin}>
-        <h2 className="login-title">Login</h2>
+      <form className="login-form" onSubmit={handleRegister}>
+        <h2 className="login-title">Register</h2>
 
         {error && <p className="login-error">{error}</p>}
 
@@ -57,24 +51,24 @@ export default function LoginPage() {
           className="login-input"
         />
 
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="login-input"
+        />
+
         <button type="submit" className="login-btn login-btn-primary">
-          Login
+          Create Account
         </button>
 
         <button
           type="button"
           className="login-btn login-btn-secondary"
-          onClick={() => navigate("/register")}
+          onClick={() => navigate("/login")}
         >
-          Register
-        </button>
-
-        <button
-          type="button"
-          className="login-btn login-btn-secondary"
-          onClick={() => navigate("/")}
-        >
-          Cancel
+          Back to Login
         </button>
       </form>
     </div>
