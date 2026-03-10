@@ -31,11 +31,9 @@ export default function CartPage() {
   };
 
   const handleDecrease = (id) => {
-    const nextCart = cartItems
-      .map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(0, item.quantity - 1) } : item
-      )
-      .filter((item) => item.quantity > 0);
+    const nextCart = cartItems.map((item) =>
+      item.id === id ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item
+    );
 
     saveCart(nextCart);
   };
@@ -76,7 +74,12 @@ export default function CartPage() {
 
                 <div className="cart-item-actions">
                   <div className="qty-control">
-                    <button onClick={() => handleDecrease(item.id)}>-</button>
+                    <button
+                      onClick={() => handleDecrease(item.id)}
+                      disabled={item.quantity <= 1}
+                    >
+                      -
+                    </button>
                     <span>{item.quantity}</span>
                     <button onClick={() => handleIncrease(item.id)}>+</button>
                   </div>
