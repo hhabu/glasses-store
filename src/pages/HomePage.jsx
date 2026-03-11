@@ -7,6 +7,7 @@ import { computeProductDisplayPricing } from "../utils/pricing";
 import { formatVND } from "../utils/currency";
 import banner1 from "../assets/ultras/banner1.jpg";
 import banner2 from "../assets/ultras/banner2.jpg";
+import { useAuth } from "../context/AuthContext";
 
 function normalizeText(value) {
   return (value || "")
@@ -19,6 +20,7 @@ function normalizeText(value) {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const searchKeyword = searchParams.get("q") || "";
   const [products, setProducts] = useState([]);
@@ -49,13 +51,6 @@ export default function HomePage() {
   }, []);
 
   const handleAddToCart = (glasses) => {
-    let user = null;
-    try {
-      user = JSON.parse(localStorage.getItem("user"));
-    } catch {
-      user = null;
-    }
-
     if (!user || user.role !== "CUSTOMER") {
       navigate("/login");
       return;
@@ -111,18 +106,21 @@ export default function HomePage() {
     navigate("/design-glasses", { state: { selectedProduct: glasses } });
   };
 
+  const handleOpenDetail = (glasses) => {
+    navigate(`/products/${glasses.id}`, { state: { product: glasses } });
+  };
+
   return (
     <div className="ultras-home">
       <section className="ultras-hero">
         <div className="hero-card hero-main" style={{ backgroundImage: `url(${banner1})` }}>
           <div className="hero-overlay">
-            <p className="hero-eyebrow">Summer Collection</p>
-            <h1 className="hero-title">New vision for everyday style.</h1>
+            <h1 className="hero-title">Lightweight frames for everyday.</h1>
             <p className="hero-subtitle">
               Premium eyewear crafted for comfort, clarity, and confidence.
             </p>
             <div className="hero-actions">
-              <button className="hero-btn" onClick={() => navigate("/design-glasses")}>
+              <button className="hero-btn" onClick={() => navigate("/products")}>
                 Shop now
               </button>
               <button
@@ -137,13 +135,12 @@ export default function HomePage() {
 
         <div className="hero-card hero-side" style={{ backgroundImage: `url(${banner2})` }}>
           <div className="hero-overlay">
-            <p className="hero-eyebrow">Casual Collection</p>
-            <h2 className="hero-title">Lightweight frames for every day.</h2>
+            <h2 className="hero-title">New vision for everyday style.</h2>
             <button
               className="hero-btn hero-btn-light"
               onClick={() => navigate("/design-glasses")}
             >
-              Shop collection
+              Design Glasses
             </button>
           </div>
         </div>
@@ -176,7 +173,19 @@ export default function HomePage() {
         ) : (
           <div className="product-grid">
             {featuredGlasses.map((item) => (
-              <div className="product-card" key={item.id}>
+              <div
+                className="product-card"
+                key={item.id}
+                onClick={() => handleOpenDetail(item)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleOpenDetail(item);
+                  }
+                }}
+              >
                 <div className="product-image-wrap">
                   <img src={item.image} alt={item.name} className="product-image" />
                   {item.pricingView?.isOnSale ? (
@@ -201,21 +210,27 @@ export default function HomePage() {
                       </span>
                     ) : null}
                   </div>
-                  <div className="product-actions">
-                    <button
-                      className="product-btn"
-                      onClick={() => handleAddToCart(item)}
-                    >
-                      Add to cart
-                    </button>
-                    <button
-                      className="product-btn product-btn-outline"
-                      onClick={() => handleDesignGlass(item)}
-                    >
-                      Design
-                    </button>
-                  </div>
+                <div className="product-actions">
+                  <button
+                    className="product-btn"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleAddToCart(item);
+                    }}
+                  >
+                    Add to cart
+                  </button>
+                  <button
+                    className="product-btn product-btn-outline"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleDesignGlass(item);
+                    }}
+                  >
+                    Design
+                  </button>
                 </div>
+              </div>
               </div>
             ))}
           </div>

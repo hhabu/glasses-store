@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AdminDashboard.css";
+import { useAuth } from "../context/AuthContext";
 
 import ProductConfigManagement from "../components/admin/ProductConfigManagement";
 import UserManagement from "../components/admin/UserManagement";
@@ -8,12 +9,12 @@ import UserManagement from "../components/admin/UserManagement";
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("BUSINESS_RULES");
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   /* ================= LOGOUT ================= */
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    logout();
     navigate("/");
-    window.location.reload();
   };
 
   /* ================= CONTENT RENDER ================= */

@@ -4,6 +4,7 @@ import "../styles/ProductsPage.css";
 import { readCatalogProducts } from "../utils/productCatalog";
 import { computeProductDisplayPricing } from "../utils/pricing";
 import { formatVND } from "../utils/currency";
+import { useAuth } from "../context/AuthContext";
 
 function normalizeText(value) {
   return (value || "")
@@ -16,6 +17,7 @@ function normalizeText(value) {
 
 export default function ProductsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const searchKeyword = searchParams.get("q") || "";
   const [products, setProducts] = useState([]);
@@ -46,13 +48,6 @@ export default function ProductsPage() {
   }, []);
 
   const handleAddToCart = (glasses) => {
-    let user = null;
-    try {
-      user = JSON.parse(localStorage.getItem("user"));
-    } catch {
-      user = null;
-    }
-
     if (!user || user.role !== "CUSTOMER") {
       navigate("/login");
       return;
@@ -106,6 +101,10 @@ export default function ProductsPage() {
     navigate("/design-glasses", { state: { selectedProduct: glasses } });
   };
 
+  const handleOpenDetail = (glasses) => {
+    navigate(`/products/${glasses.id}`, { state: { product: glasses } });
+  };
+
   return (
     <div className="products-page">
       <div className="products-hero">
@@ -134,7 +133,19 @@ export default function ProductsPage() {
       ) : (
         <div className="product-grid">
           {filteredGlasses.map((item) => (
-            <div className="product-card" key={item.id}>
+            <div
+              className="product-card"
+              key={item.id}
+              onClick={() => handleOpenDetail(item)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleOpenDetail(item);
+                }
+              }}
+            >
               <div className="product-image-wrap">
                 <img src={item.image} alt={item.name} className="product-image" />
                 {item.pricingView?.isOnSale ? (
@@ -159,18 +170,27 @@ export default function ProductsPage() {
                     </span>
                   ) : null}
                 </div>
-                <div className="product-actions">
-                  <button className="product-btn" onClick={() => handleAddToCart(item)}>
-                    Add to cart
-                  </button>
-                  <button
-                    className="product-btn product-btn-outline"
-                    onClick={() => handleDesignGlass(item)}
-                  >
-                    Design
-                  </button>
-                </div>
+              <div className="product-actions">
+                <button
+                  className="product-btn"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleAddToCart(item);
+                  }}
+                >
+                  Add to cart
+                </button>
+                <button
+                  className="product-btn product-btn-outline"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleDesignGlass(item);
+                  }}
+                >
+                  Design
+                </button>
               </div>
+            </div>
             </div>
           ))}
         </div>

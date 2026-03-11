@@ -1,54 +1,99 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap");
+
+:root {
+  --admin-ink: #111111;
+  --admin-muted: #5e5e5e;
+  --admin-amber: #c77a2a;
+  --admin-cream: #f6f0ea;
+  --admin-shadow: 0 20px 60px rgba(17, 17, 17, 0.12);
+}
+
 .admin-dashboard {
   display: flex;
   min-height: 100vh;
-  background-color: var(--pink-soft);
+  background: radial-gradient(circle at top left, #fff6ee 0%, #ffffff 45%);
+  font-family: "Manrope", system-ui, sans-serif;
+  color: var(--admin-ink);
 }
 
 /* SIDEBAR */
 .admin-sidebar {
   width: 260px;
-  background-color: var(--pink-primary);
-  color: white;
-  padding: 20px;
+  background: #fff;
+  color: var(--admin-ink);
+  padding: 24px 18px;
   display: flex;
   flex-direction: column;
+  border-right: 1px solid #efe6da;
 }
 
 .sidebar-title {
-  margin-bottom: 20px;
+  margin: 0 0 18px;
   font-size: 20px;
+  font-family: "Playfair Display", serif;
 }
 
 .admin-sidebar button {
-  background: none;
-  border: none;
-  color: white;
-  padding: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--admin-ink);
+  padding: 10px 12px;
   margin-bottom: 10px;
   text-align: left;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 999px;
+  font-weight: 600;
 }
 
 .admin-sidebar button:hover {
-  background-color: var(--pink-deep);
+  border-color: var(--admin-amber);
+  color: var(--admin-amber);
 }
 
 .admin-sidebar button.active {
-  background-color: var(--pink-soft);
-  color: var(--pink-primary);
-  font-weight: bold;
+  background: var(--admin-amber);
+  color: #fff;
+  font-weight: 700;
+}
+
+.logout-btn {
+  margin-top: auto;
+  background: transparent;
+  border: 1px solid var(--admin-amber);
+  color: var(--admin-amber);
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-weight: 600;
 }
 
 /* CONTENT */
 .admin-content {
   flex: 1;
-  padding: 40px;
-  background-color: #ffffff;
+  padding: 32px;
 }
 
-.admin-content h2 {
-  font-size: 26px;
-  color: var(--pink-primary);
+.admin-content > h2 {
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  color: var(--admin-ink);
+  font-family: "Playfair Display", serif;
+}
+
+.admin-content > * {
+  background: #fff;
+  border-radius: 22px;
+  padding: 20px;
+  box-shadow: var(--admin-shadow);
+}
+
+@media (max-width: 900px) {
+  .admin-dashboard {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #efe6da;
+  }
 }
 

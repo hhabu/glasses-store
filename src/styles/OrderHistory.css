@@ -1,37 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap");
+
+:root {
+  --order-ink: #111111;
+  --order-muted: #5e5e5e;
+  --order-amber: #c77a2a;
+  --order-cream: #f6f0ea;
+  --order-shadow: 0 20px 60px rgba(17, 17, 17, 0.12);
+}
+
 .order-history-page {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 0 20px 30px;
+  min-height: 70vh;
+  background: radial-gradient(circle at top left, #fff6ee 0%, #ffffff 45%);
+  padding: 2.5rem 6vw 4rem;
+  font-family: "Manrope", system-ui, sans-serif;
+  color: var(--order-ink);
 }
 
 .order-history-title {
-  text-align: center;
-  margin-bottom: 18px;
+  margin: 0 0 18px;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
 }
 
 .order-history-success {
   margin: 0 0 16px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #e7f7eb;
-  color: #17643a;
+  padding: 12px 14px;
+  border-radius: 999px;
+  background: #f6f0ea;
+  color: var(--order-ink);
+  font-weight: 600;
+  border: 1px solid #efe6da;
 }
 
 .order-history-empty {
-  text-align: center;
+  color: var(--order-muted);
 }
 
 .order-history-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .order-card {
   background: #fff;
-  border: 1px solid var(--pink-soft);
-  border-radius: 10px;
-  padding: 14px;
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: var(--order-shadow);
 }
 
 .order-card-header {
@@ -47,13 +62,14 @@
 
 .order-customer p {
   margin: 4px 0;
+  color: var(--order-muted);
 }
 
 .order-items {
-  margin-top: 8px;
-  border-top: 1px solid var(--pink-soft);
-  border-bottom: 1px solid var(--pink-soft);
-  padding: 8px 0;
+  margin-top: 10px;
+  border-top: 1px solid #efe6da;
+  border-bottom: 1px solid #efe6da;
+  padding: 10px 0;
 }
 
 .order-item {
@@ -61,6 +77,7 @@
   grid-template-columns: 1fr auto auto;
   gap: 10px;
   padding: 4px 0;
+  color: var(--order-muted);
 }
 
 .order-total {

@@ -1,0 +1,47 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap");
+
+:root {
+  --return-ink: #111111;
+  --return-muted: #5e5e5e;
+  --return-amber: #c77a2a;
+  --return-cream: #f6f0ea;
+  --return-shadow: 0 20px 60px rgba(17, 17, 17, 0.12);
+}
+
+.return-page {
+  min-height: 70vh;
+  background: radial-gradient(circle at top left, #fff6ee 0%, #ffffff 45%);
+  padding: 2.5rem 6vw 4rem;
+  font-family: "Manrope", system-ui, sans-serif;
+  color: var(--return-ink);
+}
+
+.return-card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: var(--return-shadow);
+}
+
+.return-card h2 {
+  margin: 0 0 8px;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+}
+
+.return-card p {
+  margin: 0;
+  color: var(--return-muted);
+  line-height: 1.7;
+}
+
+.return-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.7rem;
+  color: var(--return-amber);
+  font-weight: 700;
+  margin: 0 0 0.6rem;
+}

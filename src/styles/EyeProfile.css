@@ -1,87 +1,131 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap");
+
+:root {
+  --eye-ink: #111111;
+  --eye-muted: #5e5e5e;
+  --eye-amber: #c77a2a;
+  --eye-cream: #f6f0ea;
+  --eye-shadow: 0 20px 60px rgba(17, 17, 17, 0.12);
+}
+
 .eye-profile-page {
-  max-width: 980px;
-  margin: 24px auto;
-  padding: 0 16px 24px;
+  min-height: 70vh;
+  background: radial-gradient(circle at top left, #fff6ee 0%, #ffffff 45%);
+  padding: 2.5rem 6vw 4rem;
+  font-family: "Manrope", system-ui, sans-serif;
+  color: var(--eye-ink);
 }
 
 .eye-profile-container {
+  max-width: 980px;
+  margin: 0 auto;
   background: #fff;
-  border: 1px solid #f3d5e2;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: var(--eye-shadow);
+}
+
+.eye-profile-container h2 {
+  font-family: "Playfair Display", serif;
+  margin: 0 0 6px;
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
 }
 
 .eye-profile-subtitle {
-  margin: 6px 0 16px;
-  color: #6b4a57;
+  margin: 0 0 18px;
+  color: var(--eye-muted);
 }
 
 .eye-profile-form label {
   display: block;
-  font-weight: 600;
-  margin: 8px 0 6px;
+  font-weight: 700;
+  margin: 10px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  color: var(--eye-amber);
 }
 
 .eye-profile-form input,
 .eye-profile-form textarea {
   width: 100%;
-  border: 1px solid #e6c7d5;
-  border-radius: 8px;
+  border: 1px solid #efe6da;
+  border-radius: 12px;
   padding: 10px 12px;
   outline: none;
+  font-family: inherit;
 }
 
 .eye-profile-form input:focus,
 .eye-profile-form textarea:focus {
-  border-color: var(--pink-primary);
+  border-color: var(--eye-amber);
+  box-shadow: 0 0 0 3px rgba(199, 122, 42, 0.12);
 }
 
 .eye-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
   margin-top: 8px;
 }
 
 .eye-column {
-  border: 1px solid #f3d5e2;
-  border-radius: 10px;
-  padding: 12px;
-  background: #fffafc;
+  border: 1px solid #efe6da;
+  border-radius: 16px;
+  padding: 14px;
+  background: #fffaf4;
 }
 
 .eye-column h4 {
-  margin: 0 0 8px;
-  color: #8f2f5a;
+  margin: 0 0 10px;
+  color: var(--eye-ink);
+  font-weight: 700;
 }
 
 .eye-profile-message {
-  margin-top: 10px;
-  color: #8f2f5a;
+  margin-top: 12px;
+  color: var(--eye-amber);
+  font-weight: 600;
 }
 
 .eye-form-actions {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
+}
+
+.eye-form-actions button {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: var(--eye-amber);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .eye-profile-list {
-  margin-top: 20px;
-  border-top: 1px solid #f3d5e2;
-  padding-top: 14px;
+  margin-top: 24px;
+  border-top: 1px solid #efe6da;
+  padding-top: 18px;
+}
+
+.eye-profile-list h3 {
+  margin: 0 0 12px;
+  font-family: "Playfair Display", serif;
 }
 
 .eye-profile-card {
-  border: 1px solid #f3d5e2;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 10px;
+  border: 1px solid #efe6da;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
   background: #fff;
 }
 
 .eye-profile-card p {
   margin: 4px 0;
+  color: var(--eye-muted);
 }
 
 .eye-profile-card-head {
@@ -101,10 +145,12 @@
 }
 
 .eye-delete-btn {
-  background: #fff;
+  background: transparent;
   border: 1px solid #d9534f;
   color: #d9534f;
-  padding: 6px 10px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {

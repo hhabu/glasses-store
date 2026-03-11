@@ -52,12 +52,6 @@
   gap: 1rem;
 }
 
-.hero-eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-size: 0.75rem;
-  opacity: 0.8;
-}
 
 .hero-title {
   font-family: "Playfair Display", serif;
@@ -270,8 +264,7 @@
 
 @media (max-width: 640px) {
   .ultras-hero,
-  .ultras-section,
-  .ultras-brands {
+  .ultras-section {
     padding-left: 5vw;
     padding-right: 5vw;
   }

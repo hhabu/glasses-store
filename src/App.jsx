@@ -1,9 +1,11 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import NavBar from "./components/layout/NavBar";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import { useAuth } from "./context/AuthContext";
 
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
+import ProductDetail from "./pages/ProductDetail";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -20,13 +22,7 @@ import PaymentPage from "./pages/PaymentPage";
 
 function App() {
   const location = useLocation();
-
-  let user = null;
-  try {
-    user = JSON.parse(localStorage.getItem("user"));
-  } catch {
-    user = null;
-  }
+  const { user } = useAuth();
 
   const dashboardPaths = ["/sales", "/admin", "/operation"];
   const isDashboardPage = dashboardPaths.some((path) =>
@@ -46,6 +42,7 @@ function App() {
         {/* PUBLIC */}
         <Route path="/" element={<HomePage />} />
         <Route path="/products" element={<ProductsPage />} />
+        <Route path="/products/:productId" element={<ProductDetail />} />
         <Route path="/cart" element={<CartPage />} />
         <Route
           path="/login"

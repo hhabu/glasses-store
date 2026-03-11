@@ -1,31 +1,30 @@
 import { useState, useEffect } from "react";
 import "../styles/CustomerProfile.css";
+import { updateUser } from "../services/userService";
+import { useAuth } from "../context/AuthContext";
+import { DEFAULT_AVATAR_URL } from "../constants/avatar";
 
 export default function CustomerProfile() {
+  const { user: sessionUser, setUser: setSessionUser } = useAuth();
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) {
-      setUser(storedUser);
+    if (sessionUser) {
+      setUser(sessionUser);
     }
-  }, []);
+  }, [sessionUser]);
 
-  const handleSave = () => {
-    // update current login user
-    localStorage.setItem("user", JSON.stringify(user));
-
-    // update admin_users list
-    const users = JSON.parse(localStorage.getItem("admin_users")) || [];
-    const updatedUsers = users.map((u) =>
-      u.id === user.id ? user : u
-    );
-
-    localStorage.setItem("admin_users", JSON.stringify(updatedUsers));
-
-    setEditMode(false);
-    alert("Profile updated!");
+  const handleSave = async () => {
+    try {
+      const updated = await updateUser(user);
+      setSessionUser(updated);
+      setUser(updated);
+      setEditMode(false);
+      alert("Profile updated!");
+    } catch {
+      alert("Failed to update profile. Please try again.");
+    }
   };
 
   if (!user) return <h2 className="profile-empty">No user data</h2>;
@@ -39,11 +38,14 @@ export default function CustomerProfile() {
         {/* AVATAR */}
           <div className="profile-avatar-wrap">
           <img
-            src={user.avatar}
+            src={user.avatar || DEFAULT_AVATAR_URL}
             alt="avatar"
             width="120"
             height="120"
             className="profile-avatar-img"
+            onError={(event) => {
+              event.currentTarget.src = DEFAULT_AVATAR_URL;
+            }}
           />
         </div>
 

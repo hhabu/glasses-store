@@ -63,11 +63,6 @@
     color: var(--pink-primary);
 }
 
-.signup {
-    background-color: #222;
-    color: #fff;
-}
-
 .btn:hover {
     opacity: 0.85;
 }

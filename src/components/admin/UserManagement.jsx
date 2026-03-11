@@ -1,6 +1,8 @@
 // components/admin/UserManagement.jsx
 import { useState, useEffect } from "react";
-import { readUsers, saveUsers } from "../../services/userService";
+import { createUser, readUsers, updateUser } from "../../services/userService";
+import "../../styles/AdminUsers.css";
+import { DEFAULT_AVATAR_URL } from "../../constants/avatar";
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -18,7 +20,22 @@ export default function UserManagement() {
 
   /* ================= LOAD USERS ================= */
   useEffect(() => {
-    setUsers(readUsers());
+    let isMounted = true;
+    readUsers()
+      .then((list) => {
+        if (isMounted) {
+          setUsers(list);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setUsers([]);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   /* ================= FILTER ================= */
@@ -30,7 +47,7 @@ export default function UserManagement() {
         );
 
   /* ================= CREATE STAFF ================= */
-  const handleCreateUser = () => {
+  const handleCreateUser = async () => {
     if (!newUser.username || !newUser.password || !newUser.name) {
       alert("Please fill all required fields");
       return;
@@ -39,8 +56,7 @@ export default function UserManagement() {
     const newAccount = {
       id: Date.now(),
       ...newUser,
-      status: "ACTIVE",
-      createDate: new Date().toISOString().split("T")[0],
+      createdAt: new Date().toISOString().split("T")[0],
     };
 
     const isDuplicateUsername = users.some(
@@ -51,8 +67,13 @@ export default function UserManagement() {
       return;
     }
 
-    const updatedList = saveUsers([...users, newAccount]);
-    setUsers(updatedList);
+    try {
+      const created = await createUser(newAccount);
+      setUsers((prev) => [created, ...prev]);
+    } catch {
+      alert("Failed to create account. Please try again.");
+      return;
+    }
 
     setShowModal(false);
     setNewUser({
@@ -65,21 +86,31 @@ export default function UserManagement() {
   };
 
   /* ================= UPDATE STATUS ================= */
-  const handleChangeStatus = (id, status) => {
+  const handleChangeStatus = async (id, status) => {
     const updatedUsers = users.map((u) =>
       u.id === id ? { ...u, status } : u
     );
 
     setUsers(updatedUsers);
-    saveUsers(updatedUsers);
+    const target = updatedUsers.find((u) => u.id === id);
+    if (!target) {
+      return;
+    }
+
+    try {
+      await updateUser(target);
+    } catch {
+      alert("Failed to update status. Please try again.");
+    }
   };
+
 
   return (
     <>
       <h2>User & Staff Management</h2>
 
       {/* FILTER BUTTONS */}
-      <div style={{ marginBottom: "20px" }}>
+      <div className="admin-users-toolbar">
         <button
           onClick={() => setUserFilter("CUSTOMER")}
           className={userFilter === "CUSTOMER" ? "active" : ""}
@@ -98,11 +129,7 @@ export default function UserManagement() {
         {/* CREATE STAFF BUTTON */}
         {userFilter === "STAFF" && (
           <button
-            style={{
-              marginLeft: "20px",
-              background: "var(--pink-primary)",
-              color: "#fff",
-            }}
+            className="admin-users-create"
             onClick={() => setShowModal(true)}
           >
             + Create Account
@@ -111,7 +138,7 @@ export default function UserManagement() {
       </div>
 
       {/* USER TABLE */}
-      <table width="100%" cellPadding="10" border="1">
+      <table className="admin-users-table">
         <thead>
           <tr>
             <th>Avatar</th>
@@ -128,10 +155,13 @@ export default function UserManagement() {
             <tr key={u.id}>
               <td>
                 <img
-                  src={u.avatar}
+                  src={u.avatar || DEFAULT_AVATAR_URL}
                   alt={u.username}
                   width="40"
                   style={{ borderRadius: "50%" }}
+                  onError={(event) => {
+                    event.currentTarget.src = DEFAULT_AVATAR_URL;
+                  }}
                 />
               </td>
 
@@ -154,7 +184,7 @@ export default function UserManagement() {
                 </td>
               )}
 
-              <td>{u.createDate}</td>
+              <td>{u.createdAt || u.createDate || "-"}</td>
             </tr>
           ))}
         </tbody>
@@ -162,8 +192,8 @@ export default function UserManagement() {
 
       {/* ================= MODAL ================= */}
       {showModal && (
-        <div style={overlayStyle}>
-          <div style={modalStyle}>
+        <div className="admin-users-overlay">
+          <div className="admin-users-modal">
             <h3>Create Staff Account</h3>
 
             <input
@@ -173,7 +203,7 @@ export default function UserManagement() {
               onChange={(e) =>
                 setNewUser({ ...newUser, username: e.target.value })
               }
-              style={inputStyle}
+              className="admin-users-input"
             />
 
             <input
@@ -183,7 +213,7 @@ export default function UserManagement() {
               onChange={(e) =>
                 setNewUser({ ...newUser, password: e.target.value })
               }
-              style={inputStyle}
+              className="admin-users-input"
             />
 
             <input
@@ -193,7 +223,7 @@ export default function UserManagement() {
               onChange={(e) =>
                 setNewUser({ ...newUser, name: e.target.value })
               }
-              style={inputStyle}
+              className="admin-users-input"
             />
 
             <select
@@ -201,7 +231,7 @@ export default function UserManagement() {
               onChange={(e) =>
                 setNewUser({ ...newUser, role: e.target.value })
               }
-              style={inputStyle}
+              className="admin-users-input"
             >
               <option value="SALES">Sales</option>
               <option value="OPERATION">Operation</option>
@@ -214,18 +244,18 @@ export default function UserManagement() {
               onChange={(e) =>
                 setNewUser({ ...newUser, avatar: e.target.value })
               }
-              style={inputStyle}
+              className="admin-users-input"
             />
 
-            <div style={{ marginTop: "15px" }}>
+            <div className="admin-users-actions">
               <button
                 onClick={handleCreateUser}
-                style={{ marginRight: "10px" }}
+                className="admin-users-primary"
               >
                 Save
               </button>
 
-              <button onClick={() => setShowModal(false)}>
+              <button className="admin-users-secondary" onClick={() => setShowModal(false)}>
                 Cancel
               </button>
             </div>
@@ -236,28 +266,3 @@ export default function UserManagement() {
   );
 }
 
-/* ================= SIMPLE STYLES ================= */
-const overlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  background: "rgba(0,0,0,0.5)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-};
-
-const modalStyle = {
-  background: "#fff",
-  padding: "20px",
-  borderRadius: "8px",
-  width: "300px",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "8px",
-  marginTop: "10px",
-};

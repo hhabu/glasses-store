@@ -1,13 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "../styles/EyeProfile.css";
-
-function getCurrentUser() {
-  try {
-    return JSON.parse(localStorage.getItem("user"));
-  } catch {
-    return null;
-  }
-}
+import { useAuth } from "../context/AuthContext";
 
 function buildStorageKey(user) {
   const uniqueId = user?.id ?? user?.username ?? user?.email ?? "guest";
@@ -54,7 +47,7 @@ function buildEyeProfileFromForm(form) {
 }
 
 export default function EyeProfile() {
-  const user = useMemo(() => getCurrentUser(), []);
+  const { user } = useAuth();
   const storageKey = useMemo(() => buildStorageKey(user), [user]);
   const [profiles, setProfiles] = useState(() => readProfiles(storageKey));
   const [form, setForm] = useState(() => getEmptyForm());

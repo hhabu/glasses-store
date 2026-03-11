@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import lensList from "../data/LensList";
+import "../styles/DesignGlasses.css";
 import { formatVND } from "../utils/currency";
+import { useAuth } from "../context/AuthContext";
 
 function readSelectedProductFromStorage() {
   try {
@@ -14,6 +16,7 @@ function readSelectedProductFromStorage() {
 export default function DesignGlasses() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedLensId, setSelectedLensId] = useState(lensList[0]?.id || "");
   const [selectedProduct, setSelectedProduct] = useState(() =>
     location.state?.selectedProduct || readSelectedProductFromStorage()
@@ -39,13 +42,6 @@ export default function DesignGlasses() {
   const handleAddDesignedToCart = () => {
     if (!selectedProduct || !selectedLens) {
       return;
-    }
-
-    let user = null;
-    try {
-      user = JSON.parse(localStorage.getItem("user"));
-    } catch {
-      user = null;
     }
 
     if (!user || user.role !== "CUSTOMER") {
@@ -87,75 +83,84 @@ export default function DesignGlasses() {
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Design Glasses</h1>
-      <p style={styles.description}>
-        Choose a frame and lens type that matches your vision needs.
-      </p>
+    <div className="design-page">
+      <div className="design-hero">
+        <p className="design-kicker">Studio</p>
+        <h1 className="design-title">Design Glasses</h1>
+        <p className="design-subtitle">
+          Choose a frame and lens type that matches your vision needs.
+        </p>
+      </div>
+
+      <div className="design-section">
+        <h3 className="design-section-title">Selected frame</h3>
+        <p className="design-section-note">
+          Pick a frame and then select a lens package to build your custom pair.
+        </p>
+      </div>
 
       {selectedProduct ? (
-        <div style={styles.productCard}>
+        <div className="design-card">
           <img
             src={selectedProduct.image}
             alt={selectedProduct.name}
-            style={styles.productImage}
+            className="design-card-image"
           />
-          <div>
-            <h3 style={styles.sectionTitle}>Selected frame</h3>
-            <p style={styles.text}><strong>Name:</strong> {selectedProduct.name}</p>
-            <p style={styles.text}><strong>Brand:</strong> {selectedProduct.brand}</p>
-            <p style={styles.text}><strong>Color:</strong> {selectedProduct.color}</p>
-            <p style={styles.text}><strong>Price:</strong> {formatVND(selectedProduct.price)}</p>
-            <button style={styles.removeButton} onClick={handleRemoveSelectedProduct}>
+          <div className="design-card-info">
+            <h3 className="design-card-title">{selectedProduct.name}</h3>
+            <p><strong>Brand:</strong> {selectedProduct.brand}</p>
+            <p><strong>Color:</strong> {selectedProduct.color}</p>
+            <p><strong>Price:</strong> {formatVND(selectedProduct.price)}</p>
+            <button className="design-btn design-btn-dark" onClick={handleRemoveSelectedProduct}>
               Remove selected frame
             </button>
           </div>
         </div>
       ) : (
-        <div style={styles.warningBox}>
-          <p style={styles.warning}>
-            No product selected yet. Please choose "Design glass" from a product modal.
+        <div className="design-empty">
+          <p className="design-empty-text">
+            No product selected yet. Please choose "Design" from a product detail page.
           </p>
-          <button style={styles.goHomeButton} onClick={() => navigate("/")}>
+          <button className="design-btn" onClick={() => navigate("/")}>
             Go to HomePage to choose frames
           </button>
         </div>
       )}
 
-      <h3 style={styles.sectionTitle}>Choose lens</h3>
-      <div style={styles.lensGrid}>
+      <div className="design-section">
+        <h3 className="design-section-title">Choose lens</h3>
+      </div>
+
+      <div className="design-lens-grid">
         {lensList.map((lens) => {
           const isActive = selectedLensId === lens.id;
           return (
             <button
               key={lens.id}
               onClick={() => setSelectedLensId(lens.id)}
-              style={{
-                ...styles.lensCard,
-                ...(isActive ? styles.lensCardActive : {}),
-              }}
+              className={`design-lens-card ${isActive ? "is-active" : ""}`}
             >
-              <h4 style={styles.lensName}>{lens.name}</h4>
-              <p style={styles.text}>{lens.description}</p>
-              <p style={styles.text}><strong>Type:</strong> {lens.type}</p>
-              <p style={styles.text}><strong>Material:</strong> {lens.material}</p>
-              <p style={styles.text}><strong>Coating:</strong> {lens.coating}</p>
-              <p style={styles.lensPrice}>+ {formatVND(lens.price)}</p>
+              <h4 className="design-lens-name">{lens.name}</h4>
+              <p>{lens.description}</p>
+              <p><strong>Type:</strong> {lens.type}</p>
+              <p><strong>Material:</strong> {lens.material}</p>
+              <p><strong>Coating:</strong> {lens.coating}</p>
+              <p className="design-lens-price">+ {formatVND(lens.price)}</p>
             </button>
           );
         })}
       </div>
 
       {selectedProduct && selectedLens ? (
-        <div style={styles.summary}>
-          <h3 style={styles.sectionTitle}>Current selection</h3>
-          <p style={styles.text}>
+        <div className="design-summary">
+          <h3 className="design-section-title">Current selection</h3>
+          <p>
             {selectedProduct.name} + {selectedLens.name}
           </p>
-          <p style={styles.totalPrice}>
+          <p className="design-summary-total">
             Estimated total: {formatVND(selectedProduct.price + selectedLens.price)}
           </p>
-          <button style={styles.addToCartButton} onClick={handleAddDesignedToCart}>
+          <button className="design-btn" onClick={handleAddDesignedToCart}>
             Add To Cart
           </button>
         </div>
@@ -163,120 +168,3 @@ export default function DesignGlasses() {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    maxWidth: "900px",
-    margin: "40px auto",
-    padding: "0 16px",
-  },
-  title: {
-    marginBottom: "12px",
-    color: "var(--pink-primary)",
-  },
-  description: {
-    color: "var(--pink-primary)",
-    lineHeight: 1.6,
-    marginBottom: "20px",
-  },
-  productCard: {
-    display: "grid",
-    gridTemplateColumns: "120px 1fr",
-    gap: "16px",
-    alignItems: "center",
-    border: "1px solid #f2d7dd",
-    borderRadius: "10px",
-    padding: "12px",
-    marginBottom: "20px",
-    backgroundColor: "#fff",
-  },
-  productImage: {
-    width: "120px",
-    height: "80px",
-    objectFit: "cover",
-    borderRadius: "8px",
-  },
-  sectionTitle: {
-    margin: "8px 0",
-    color: "#8a2c4f",
-  },
-  text: {
-    margin: "4px 0",
-    color: "#5e3b4a",
-    lineHeight: 1.5,
-    textAlign: "left",
-  },
-  warning: {
-    border: "1px dashed #d8a5b8",
-    borderRadius: "10px",
-    padding: "12px",
-    color: "#8a2c4f",
-    marginBottom: "10px",
-  },
-  warningBox: {
-    marginBottom: "20px",
-  },
-  goHomeButton: {
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    backgroundColor: "var(--pink-primary)",
-    color: "#fff",
-    cursor: "pointer",
-  },
-  lensGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-    gap: "12px",
-  },
-  lensCard: {
-    border: "1px solid #f2d7dd",
-    borderRadius: "10px",
-    padding: "12px",
-    backgroundColor: "#fff",
-    cursor: "pointer",
-  },
-  lensCardActive: {
-    border: "2px solid #bf4b77",
-    boxShadow: "0 0 0 2px rgba(191, 75, 119, 0.15)",
-  },
-  lensName: {
-    margin: "0 0 8px 0",
-    color: "#8a2c4f",
-    textAlign: "left",
-  },
-  lensPrice: {
-    margin: "8px 0 0 0",
-    color: "#bf4b77",
-    fontWeight: 700,
-    textAlign: "left",
-  },
-  summary: {
-    marginTop: "20px",
-    borderTop: "1px solid #f2d7dd",
-    paddingTop: "12px",
-  },
-  totalPrice: {
-    marginTop: "8px",
-    color: "#8a2c4f",
-    fontWeight: 700,
-  },
-  removeButton: {
-    marginTop: "10px",
-    border: "none",
-    borderRadius: "8px",
-    padding: "8px 12px",
-    backgroundColor: "#111827",
-    color: "#fff",
-    cursor: "pointer",
-  },
-  addToCartButton: {
-    marginTop: "10px",
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 14px",
-    backgroundColor: "var(--pink-primary)",
-    color: "#fff",
-    cursor: "pointer",
-  },
-};

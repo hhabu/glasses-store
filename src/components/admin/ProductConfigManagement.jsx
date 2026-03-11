@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import AdminProductCard from "./AdminProductCard";
 import { readCatalogProducts, updateCatalogProduct } from "../../utils/productCatalog";
+import "../../styles/Glasses.css";
 
 export default function ProductConfigManagement({
   title = "Product Configuration Management",

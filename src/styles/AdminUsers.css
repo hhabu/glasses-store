@@ -1,0 +1,128 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap");
+
+:root {
+  --admin-users-ink: #111111;
+  --admin-users-muted: #5e5e5e;
+  --admin-users-amber: #c77a2a;
+  --admin-users-cream: #f6f0ea;
+  --admin-users-shadow: 0 20px 60px rgba(17, 17, 17, 0.12);
+}
+
+.admin-users-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.admin-users-toolbar button {
+  border: 1px solid var(--admin-users-amber);
+  background: transparent;
+  color: var(--admin-users-amber);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-users-toolbar button.active {
+  background: var(--admin-users-amber);
+  color: #fff;
+}
+
+.admin-users-create {
+  margin-left: 10px;
+  background: var(--admin-users-amber);
+  color: #fff;
+}
+
+.admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--admin-users-shadow);
+}
+
+.admin-users-table th,
+.admin-users-table td {
+  border-bottom: 1px solid #efe6da;
+  padding: 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-users-table th {
+  background: #fff7ee;
+  color: var(--admin-users-ink);
+}
+
+.admin-users-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-users-table select {
+  border: 1px solid #efe6da;
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.admin-users-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 120;
+}
+
+.admin-users-modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 16px;
+  width: min(360px, 92vw);
+  box-shadow: var(--admin-users-shadow);
+  display: grid;
+  gap: 10px;
+}
+
+.admin-users-modal h3 {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+}
+
+.admin-users-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #efe6da;
+  border-radius: 10px;
+}
+
+.admin-users-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.admin-users-primary {
+  background: var(--admin-users-amber);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 600;
+}
+
+.admin-users-secondary {
+  background: transparent;
+  color: var(--admin-users-amber);
+  border: 1px solid var(--admin-users-amber);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 600;
+}

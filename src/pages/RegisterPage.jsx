@@ -10,7 +10,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleRegister = (event) => {
+  const handleRegister = async (event) => {
     event.preventDefault();
     setError("");
 
@@ -19,7 +19,13 @@ export default function RegisterPage() {
       return;
     }
 
-    const result = registerCustomer({ username, password });
+    let result;
+    try {
+      result = await registerCustomer({ username, password });
+    } catch {
+      setError("Unable to register right now. Please try again.");
+      return;
+    }
     if (!result.ok) {
       setError(result.message);
       return;

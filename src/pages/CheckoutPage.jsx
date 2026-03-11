@@ -4,6 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import "../styles/CheckoutPage.css";
 import { formatVND } from "../utils/currency";
+import { useAuth } from "../context/AuthContext";
 
 const CART_KEY = "cart";
 const ORDERS_KEY = "orders";
@@ -24,6 +25,7 @@ function readCartFromStorage() {
 export default function CheckoutPage() {
   const [cartItems] = useState(readCartFromStorage);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS.COD);
 
   const totalPrice = useMemo(
@@ -42,13 +44,6 @@ export default function CheckoutPage() {
   });
 
   const createOrderFromForm = (values, method) => {
-    let user = null;
-    try {
-      user = JSON.parse(localStorage.getItem("user"));
-    } catch {
-      user = null;
-    }
-
     const now = Date.now();
     const expiresAt = new Date(now + 15 * 60 * 1000).toISOString();
 

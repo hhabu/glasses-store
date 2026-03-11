@@ -2,16 +2,25 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/LoginPage.css";
 import { loginWithCredentials } from "../services/userService";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const result = loginWithCredentials(username, password);
+    setError("");
+    let result;
+    try {
+      result = await loginWithCredentials(username, password);
+    } catch {
+      setError("Unable to login right now. Please try again.");
+      return;
+    }
 
     if (!result.ok) {
       setError(result.message);
@@ -19,6 +28,7 @@ export default function LoginPage() {
     }
 
     const user = result.user;
+    setUser(user);
     switch (user.role) {
       case "ADMIN":
         navigate("/admin");

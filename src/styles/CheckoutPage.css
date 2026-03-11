@@ -136,11 +136,6 @@
   cursor: pointer;
 }
 
-.checkout-payment-message {
-  margin: 10px 0 0;
-  color: #8f2f5a;
-}
-
 @media (max-width: 900px) {
   .checkout-layout {
     grid-template-columns: 1fr;

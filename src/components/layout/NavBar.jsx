@@ -2,17 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import Cart from "./Cart";
 import "../../styles/NavBar.css";
+import { useAuth } from "../../context/AuthContext";
+import { DEFAULT_AVATAR_URL } from "../../constants/avatar";
 
 export default function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  let user = null;
-  try {
-    user = JSON.parse(localStorage.getItem("user"));
-  } catch {
-    user = null;
-  }
+  const { user, logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState(searchParams.get("q") || "");
   const profileMenuRef = useRef(null);
@@ -38,9 +35,8 @@ export default function NavBar() {
 
   const handleLogout = () => {
     setShowMenu(false);
-    localStorage.removeItem("user");
+    logout();
     navigate("/");
-    window.location.reload(); // reset UI for demo
   };
 
   const goToDashboard = () => {
@@ -115,12 +111,15 @@ export default function NavBar() {
           )}
 
           {/* LOGGED IN (ALL ROLES) */}
-          {user && user.avatar && (
+          {user && (
             <div className="profile-wrapper" ref={profileMenuRef}>
               <img
-                src={user.avatar}
+                src={user.avatar || DEFAULT_AVATAR_URL}
                 alt="profile"
                 className="profile-avatar"
+                onError={(event) => {
+                  event.currentTarget.src = DEFAULT_AVATAR_URL;
+                }}
                 onClick={() => setShowMenu(!showMenu)}
               />
 
