@@ -1,41 +1,69 @@
 // components/admin/ProductConfigManagement.jsx
 import { useState, useEffect } from "react";
 import AdminProductCard from "./AdminProductCard";
-import { readCatalogProducts, saveCatalogProducts } from "../../utils/productCatalog";
+import { readCatalogProducts, updateCatalogProduct } from "../../utils/productCatalog";
 
 export default function ProductConfigManagement({
   title = "Product Configuration Management",
   mode = "basic",
 }) {
   const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const catalog = readCatalogProducts();
-    setProducts(catalog);
+    let isMounted = true;
+    readCatalogProducts()
+      .then((catalog) => {
+        if (isMounted) {
+          setProducts(Array.isArray(catalog) ? catalog : []);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setProducts([]);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleSaveProduct = (updatedProduct) => {
-    const updatedList = products.map((p) =>
-      p.id === updatedProduct.id ? updatedProduct : p
-    );
-    const normalized = saveCatalogProducts(updatedList);
-    setProducts(normalized);
+    updateCatalogProduct(updatedProduct)
+      .then((savedProduct) => {
+        setProducts((prev) =>
+          prev.map((item) => (item.id === savedProduct.id ? savedProduct : item))
+        );
+      })
+      .catch(() => {
+        setProducts((prev) => prev);
+      });
   };
 
   return (
     <>
       <h2>{title}</h2>
 
-      <div className="glasses-grid">
-        {products.map((product) => (
-          <AdminProductCard
-            key={product.id}
-            product={product}
-            onSave={handleSaveProduct}
-            mode={mode}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <p>Loading products...</p>
+      ) : (
+        <div className="glasses-grid">
+          {products.map((product) => (
+            <AdminProductCard
+              key={product.id}
+              product={product}
+              onSave={handleSaveProduct}
+              mode={mode}
+            />
+          ))}
+        </div>
+      )}
     </>
   );
 }

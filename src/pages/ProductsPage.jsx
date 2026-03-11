@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import "../styles/ProductsPage.css";
 import { readCatalogProducts } from "../utils/productCatalog";
@@ -18,7 +18,32 @@ export default function ProductsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchKeyword = searchParams.get("q") || "";
-  const products = useMemo(() => readCatalogProducts(), []);
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    readCatalogProducts()
+      .then((data) => {
+        if (isMounted) {
+          setProducts(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setProducts([]);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleAddToCart = (glasses) => {
     let user = null;
@@ -102,7 +127,9 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      {filteredGlasses.length === 0 ? (
+      {isLoading ? (
+        <p className="products-empty">Loading products...</p>
+      ) : filteredGlasses.length === 0 ? (
         <p className="products-empty">No products found for "{searchKeyword}".</p>
       ) : (
         <div className="product-grid">
