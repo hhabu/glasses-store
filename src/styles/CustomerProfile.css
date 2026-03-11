@@ -73,9 +73,20 @@
   box-shadow: 0 0 0 3px rgba(199, 122, 42, 0.12);
 }
 
+.profile-input-error {
+  border-color: #d14343;
+  box-shadow: 0 0 0 3px rgba(209, 67, 67, 0.12);
+}
+
 .profile-input-readonly {
   background-color: #fff7ee;
   color: var(--profile-muted);
+}
+
+.profile-error {
+  margin: -8px 0 12px;
+  font-size: 12px;
+  color: #b42318;
 }
 
 .profile-actions {
