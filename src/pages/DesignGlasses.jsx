@@ -7,7 +7,11 @@ import { useAuth } from "../context/AuthContext";
 
 function readSelectedProductFromStorage() {
   try {
-    return JSON.parse(localStorage.getItem("selectedDesignProduct"));
+    const stored = JSON.parse(localStorage.getItem("selectedDesignProduct"));
+    if (stored && stored.product_id === undefined && stored.id !== undefined) {
+      return { ...stored, product_id: stored.id };
+    }
+    return stored;
   } catch {
     return null;
   }
@@ -49,10 +53,10 @@ export default function DesignGlasses() {
       return;
     }
 
-    const cartItemId = `${selectedProduct.id}-${selectedLens.id}`;
+    const cartItemId = `${selectedProduct.product_id}-${selectedLens.id}`;
     const cartItem = {
       id: cartItemId,
-      frameId: selectedProduct.id,
+      frameId: selectedProduct.product_id,
       lensId: selectedLens.id,
       name: `${selectedProduct.name} + ${selectedLens.name}`,
       brand: selectedProduct.brand,

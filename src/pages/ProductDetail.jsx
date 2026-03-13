@@ -39,7 +39,9 @@ export default function ProductDetail() {
           return;
         }
         const list = Array.isArray(data) ? data : [];
-        const match = list.find((item) => normalizeId(item.id) === normalizeId(productId));
+        const match = list.find(
+          (item) => normalizeId(item.product_id) === normalizeId(productId)
+        );
         setCatalogProducts(list);
         if (match) {
           setProduct(computeProductDisplayPricing(match));
@@ -76,7 +78,7 @@ export default function ProductDetail() {
     }
 
     const cartItem = {
-      id: product.id,
+      id: product.product_id,
       name: product.name,
       brand: product.brand,
       color: product.color,
@@ -88,7 +90,9 @@ export default function ProductDetail() {
     };
 
     const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const existingIndex = currentCart.findIndex((item) => item.id === product.id);
+    const existingIndex = currentCart.findIndex(
+      (item) => item.id === product.product_id
+    );
 
     if (existingIndex >= 0) {
       currentCart[existingIndex].quantity += 1;
@@ -125,7 +129,7 @@ export default function ProductDetail() {
       return [];
     }
     const list = (Array.isArray(catalogProducts) ? catalogProducts : []).filter(
-      (item) => item.id !== product.id
+      (item) => item.product_id !== product.product_id
     );
 
     const sameBrandAndColor = list.filter(
@@ -263,9 +267,11 @@ export default function ProductDetail() {
             <div className="product-detail-related-list" ref={relatedListRef}>
               {relatedProducts.map((item) => (
                 <button
-                  key={item.id}
+                  key={item.product_id}
                   className="product-detail-related-card"
-                  onClick={() => navigate(`/products/${item.id}`, { state: { product: item } })}
+                  onClick={() =>
+                    navigate(`/products/${item.product_id}`, { state: { product: item } })
+                  }
                 >
                   <div className="product-detail-related-image-wrap">
                     <img

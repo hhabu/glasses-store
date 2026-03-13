@@ -1,15 +1,15 @@
 :root {
-  --pink-primary: #e91e63;
-  --pink-deep: #c2185b;
-  --pink-soft: #ffe1ee;
-  --bs-primary: var(--pink-primary);
-  --bs-primary-rgb: 233, 30, 99;
-  --bs-success: var(--pink-primary);
-  --bs-success-rgb: 233, 30, 99;
-  --bs-danger: var(--pink-primary);
-  --bs-danger-rgb: 233, 30, 99;
-  --bs-secondary: var(--pink-primary);
-  --bs-secondary-rgb: 233, 30, 99;
+  --theme-primary: #c77a2a;
+  --theme-deep: #a96522;
+  --theme-soft: #f6eadf;
+  --bs-primary: var(--theme-primary);
+  --bs-primary-rgb: 199, 122, 42;
+  --bs-success: var(--theme-primary);
+  --bs-success-rgb: 199, 122, 42;
+  --bs-danger: var(--theme-primary);
+  --bs-danger-rgb: 199, 122, 42;
+  --bs-secondary: var(--theme-primary);
+  --bs-secondary-rgb: 199, 122, 42;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -34,12 +34,12 @@ body {
 
 a {
   font-weight: 500;
-  color: var(--pink-primary);
+  color: var(--theme-primary);
   text-decoration: inherit;
 }
 
 a:hover {
-  color: var(--pink-deep);
+  color: var(--theme-deep);
 }
 
 button {
@@ -49,14 +49,14 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: var(--pink-primary);
+  background-color: var(--theme-primary);
   color: #ffffff;
   cursor: pointer;
   transition: border-color 0.25s;
 }
 
 button:hover {
-  border-color: var(--pink-primary);
+  border-color: var(--theme-primary);
 }
 
 button:focus,
@@ -71,10 +71,10 @@ button:focus-visible {
   }
 
   a:hover {
-    color: var(--pink-deep);
+    color: var(--theme-deep);
   }
 
   button {
-    background-color: var(--pink-primary);
+    background-color: var(--theme-primary);
   }
 }

@@ -12,35 +12,40 @@ function clampNumber(value, min, max) {
 }
 
 export function normalizeProductPricing(product) {
+  const normalizedProduct =
+    product?.product_id === undefined && product?.id !== undefined
+      ? { ...product, product_id: product.id }
+      : product;
+
   const basePrice = clampNumber(
-    product?.pricing?.basePrice ?? product?.price ?? 0,
+    normalizedProduct?.pricing?.basePrice ?? normalizedProduct?.price ?? 0,
     0,
     Number.MAX_SAFE_INTEGER
   );
 
   const saleType =
-    product?.pricing?.saleOverride?.type === SALE_OVERRIDE_TYPE.FIXED_PRICE
+    normalizedProduct?.pricing?.saleOverride?.type === SALE_OVERRIDE_TYPE.FIXED_PRICE
       ? SALE_OVERRIDE_TYPE.FIXED_PRICE
       : SALE_OVERRIDE_TYPE.PERCENT;
 
   const percentOff = clampNumber(
-    product?.pricing?.saleOverride?.percentOff ?? 0,
+    normalizedProduct?.pricing?.saleOverride?.percentOff ?? 0,
     0,
     95
   );
   const salePrice = clampNumber(
-    product?.pricing?.saleOverride?.salePrice ?? basePrice,
+    normalizedProduct?.pricing?.saleOverride?.salePrice ?? basePrice,
     0,
     basePrice
   );
 
   return {
-    ...product,
+    ...normalizedProduct,
     price: basePrice,
     pricing: {
       basePrice,
       saleOverride: {
-        enabled: Boolean(product?.pricing?.saleOverride?.enabled),
+        enabled: Boolean(normalizedProduct?.pricing?.saleOverride?.enabled),
         type: saleType,
         percentOff,
         salePrice,

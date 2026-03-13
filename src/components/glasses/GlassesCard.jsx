@@ -14,12 +14,14 @@ export default function GlassesCard({ glasses, onAddToCart }) {
     }
   };
   const handleOpenDetail = () => {
-    navigate(`/products/${display.id}`, { state: { product: display } });
+    navigate(`/products/${display.product_id}`, { state: { product: display } });
   };
 
   return (
     <Card className="glasses-card" onClick={handleOpenDetail}>
-      <Card.Img variant="top" src={display.image} />
+      <div className="glasses-card-media">
+        <Card.Img variant="top" src={display.image} />
+      </div>
       <Card.Body>
         <Card.Title className="card-product-name">{display.name}</Card.Title>
         <p className="card-product-brand">Brand: {display.brand}</p>

@@ -44,7 +44,9 @@ export default function AdminProductCard({ product, onSave, mode = "basic" }) {
     <>
       {/* CARD */}
       <Card className="glasses-card">
-        <Card.Img variant="top" src={normalizedProduct.image} />
+        <div className="glasses-card-media">
+          <Card.Img variant="top" src={normalizedProduct.image} />
+        </div>
         <Card.Body>
           <Card.Title>{normalizedProduct.name}</Card.Title>
           <Card.Text>

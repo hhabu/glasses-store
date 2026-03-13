@@ -51,11 +51,20 @@ body {
   box-shadow: 0 16px 28px rgba(17, 17, 17, 0.12);
 }
 
-.glasses-card .card-img-top {
+.glasses-card .glasses-card-media {
   width: 100%;
   height: 165px;
-  object-fit: cover;
   border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.glasses-card .glasses-card-media .card-img-top {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .glasses-card .card-body {
@@ -145,7 +154,7 @@ body {
     gap: 16px;
   }
 
-  .glasses-card .card-img-top {
+  .glasses-card .glasses-card-media {
     height: 170px;
   }
 

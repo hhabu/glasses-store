@@ -39,7 +39,9 @@ export default function ProductConfigManagement({
     updateCatalogProduct(updatedProduct)
       .then((savedProduct) => {
         setProducts((prev) =>
-          prev.map((item) => (item.id === savedProduct.id ? savedProduct : item))
+          prev.map((item) =>
+            item.product_id === savedProduct.product_id ? savedProduct : item
+          )
         );
       })
       .catch(() => {
@@ -57,7 +59,7 @@ export default function ProductConfigManagement({
         <div className="glasses-grid">
           {products.map((product) => (
             <AdminProductCard
-              key={product.id}
+              key={product.product_id}
               product={product}
               onSave={handleSaveProduct}
               mode={mode}

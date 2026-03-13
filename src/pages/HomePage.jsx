@@ -57,7 +57,7 @@ export default function HomePage() {
     }
 
     const cartItem = {
-      id: glasses.id,
+      id: glasses.product_id,
       name: glasses.name,
       brand: glasses.brand,
       color: glasses.color,
@@ -69,7 +69,9 @@ export default function HomePage() {
     };
 
     const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const existingIndex = currentCart.findIndex((item) => item.id === glasses.id);
+    const existingIndex = currentCart.findIndex(
+      (item) => item.id === glasses.product_id
+    );
 
     if (existingIndex >= 0) {
       currentCart[existingIndex].quantity += 1;
@@ -107,7 +109,7 @@ export default function HomePage() {
   };
 
   const handleOpenDetail = (glasses) => {
-    navigate(`/products/${glasses.id}`, { state: { product: glasses } });
+    navigate(`/products/${glasses.product_id}`, { state: { product: glasses } });
   };
 
   return (
@@ -175,7 +177,7 @@ export default function HomePage() {
             {featuredGlasses.map((item) => (
               <div
                 className="product-card"
-                key={item.id}
+                key={item.product_id}
                 onClick={() => handleOpenDetail(item)}
                 role="button"
                 tabIndex={0}
