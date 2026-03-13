@@ -85,9 +85,38 @@
   text-align: right;
 }
 
+.order-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.order-action-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.order-action-btn.is-cancel {
+  background: #111111;
+  color: #ffffff;
+}
+
+.order-action-btn.is-return {
+  background: var(--order-amber);
+  color: #ffffff;
+}
+
 @media (max-width: 768px) {
   .order-card-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .order-actions {
+    justify-content: flex-start;
   }
 }

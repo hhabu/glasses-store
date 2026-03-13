@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/OrderHistory.css";
 import { formatVND } from "../utils/currency";
 
@@ -16,7 +16,24 @@ function readOrders() {
 
 export default function OrderHistory() {
   const location = useLocation();
-  const orders = useMemo(() => readOrders(), []);
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState(() => readOrders());
+
+  const updateOrders = (nextOrders) => {
+    setOrders(nextOrders);
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(nextOrders));
+  };
+
+  const handleCancelOrder = (orderId) => {
+    const next = orders.map((order) =>
+      order.id === orderId ? { ...order, status: "CANCELLED" } : order
+    );
+    updateOrders(next);
+  };
+
+  const handleReturnOrder = (order) => {
+    navigate("/returns", { state: { order } });
+  };
 
   return (
     <div className="order-history-page">
@@ -37,7 +54,12 @@ export default function OrderHistory() {
         <p className="order-history-empty">No orders yet.</p>
       ) : (
         <div className="order-history-list">
-          {orders.map((order) => (
+          {orders.map((order) => {
+            const normalizedStatus = String(order.status || "").toLowerCase();
+            const canCancel = normalizedStatus === "placed";
+            const canReturn = normalizedStatus === "delivered";
+
+            return (
             <article className="order-card" key={order.id}>
               <div className="order-card-header">
                 <h3>{order.id}</h3>
@@ -71,8 +93,31 @@ export default function OrderHistory() {
                   Payment: {order.payment?.method || "-"} / {order.payment?.status || "-"}
                 </strong>
               </div>
+              {canCancel || canReturn ? (
+                <div className="order-actions">
+                  {canCancel ? (
+                    <button
+                      type="button"
+                      className="order-action-btn is-cancel"
+                      onClick={() => handleCancelOrder(order.id)}
+                    >
+                      Cancel
+                    </button>
+                  ) : null}
+                  {canReturn ? (
+                    <button
+                      type="button"
+                      className="order-action-btn is-return"
+                      onClick={() => handleReturnOrder(order)}
+                    >
+                      Return
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
             </article>
-          ))}
+          );
+          })}
         </div>
       )}
     </div>

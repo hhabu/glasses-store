@@ -17,7 +17,7 @@
 
 .checkout-section {
   background: #fff;
-  border: 1px solid var(--pink-soft);
+  border: 1px solid var(--theme-soft);
   border-radius: 10px;
   padding: 16px;
 }
@@ -34,9 +34,18 @@
 
 .checkout-form input,
 .checkout-form textarea {
-  border: 1px solid var(--pink-soft);
+  border: 1px solid #111111;
   border-radius: 8px;
   padding: 10px;
+  color: #111111;
+  background: #ffffff;
+}
+
+.checkout-form input:focus,
+.checkout-form textarea:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 3px rgba(199, 122, 42, 0.18);
 }
 
 .checkout-field-error {
@@ -49,7 +58,7 @@
   border: none;
   border-radius: 8px;
   padding: 10px 14px;
-  background: var(--pink-primary);
+  background: var(--theme-primary);
   color: #fff;
   margin-top: 6px;
   cursor: pointer;
@@ -71,7 +80,7 @@
   grid-template-columns: 80px 1fr auto;
   gap: 10px;
   align-items: center;
-  border: 1px solid var(--pink-soft);
+  border: 1px solid var(--theme-soft);
   border-radius: 8px;
   padding: 10px;
 }
@@ -101,7 +110,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-top: 1px solid var(--pink-soft);
+  border-top: 1px solid var(--theme-soft);
   padding-top: 12px;
 }
 
@@ -128,10 +137,10 @@
 }
 
 .checkout-online-btn {
-  border: 1px solid #8f2f5a;
+  border: 1px solid var(--theme-primary);
   border-radius: 8px;
   background: #fff;
-  color: #8f2f5a;
+  color: var(--theme-primary);
   padding: 8px 12px;
   cursor: pointer;
 }

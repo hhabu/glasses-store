@@ -45,3 +45,147 @@
   font-weight: 700;
   margin: 0 0 0.6rem;
 }
+
+.return-subtitle {
+  margin-bottom: 16px;
+}
+
+.return-empty {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.return-link-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  background: var(--return-amber);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.return-form {
+  display: grid;
+  gap: 14px;
+}
+
+.return-field {
+  display: grid;
+  gap: 6px;
+}
+
+.return-field label {
+  font-weight: 600;
+  color: var(--return-ink);
+}
+
+.return-field input,
+.return-field select,
+.return-field textarea {
+  border: 1px solid #111111;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--return-ink);
+  background: #fff;
+}
+
+.return-field input:focus,
+.return-field select:focus,
+.return-field textarea:focus {
+  outline: none;
+  border-color: var(--return-amber);
+  box-shadow: 0 0 0 3px rgba(199, 122, 42, 0.18);
+}
+
+.return-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.return-section h3 {
+  margin: 0 0 6px;
+}
+
+.return-items {
+  display: grid;
+  gap: 10px;
+}
+
+.return-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--return-cream);
+  border-radius: 12px;
+  background: #fffaf5;
+}
+
+.return-item-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--return-ink);
+}
+
+.return-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--return-muted);
+}
+
+.return-item-meta input {
+  width: 70px;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.return-error {
+  margin: 0;
+  color: #d9534f;
+  font-weight: 600;
+}
+
+.return-success {
+  margin: 0;
+  color: var(--return-amber);
+  font-weight: 600;
+}
+
+.return-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.return-submit {
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1.6rem;
+  background: var(--return-amber);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .return-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .return-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .return-actions {
+    justify-content: flex-start;
+  }
+}
