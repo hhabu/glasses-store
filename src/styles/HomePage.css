@@ -137,6 +137,54 @@
   color: var(--ultras-muted);
 }
 
+.category-browser {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.category-tab {
+  border: 1px solid #d7c5b3;
+  background: #fff;
+  color: #4e4236;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.category-tab.is-active {
+  background: var(--ultras-amber);
+  border-color: var(--ultras-amber);
+  color: #fff;
+}
+
+.category-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.category-section-header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.category-section-title {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: 1.5rem;
+}
+
+.category-section-subtitle {
+  margin: 0;
+  color: var(--ultras-muted);
+}
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -229,6 +277,10 @@
   margin-top: auto;
 }
 
+.product-actions.is-single {
+  gap: 0;
+}
+
 .product-btn {
   flex: 1;
   background: var(--ultras-amber);
@@ -238,10 +290,58 @@
   font-size: 0.9rem;
 }
 
+.product-btn-single {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+}
+
+.product-btn-design-single {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  border: 2px solid var(--ultras-amber);
+  background: #fff8f0;
+}
+
 .product-btn-outline {
   background: transparent;
   border: 1px solid var(--ultras-amber);
   color: var(--ultras-amber);
+}
+
+.product-btn-outline.product-btn-design-single {
+  border: 2px solid var(--ultras-amber);
+  background: #fff8f0;
+}
+
+.home-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.home-pagination-btn {
+  border: 1px solid #d7c5b3;
+  background: #fff;
+  color: #4e4236;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.home-pagination-btn.is-active {
+  background: var(--ultras-amber);
+  border-color: var(--ultras-amber);
+  color: #fff;
+}
+
+.home-pagination-btn:disabled {
+  opacity: 0.45;
 }
 
 @media (max-width: 1200px) {
@@ -283,6 +383,15 @@
   .section-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .category-tabs {
+    width: 100%;
+  }
+
+  .category-tab {
+    flex: 1 1 calc(50% - 0.4rem);
+    text-align: center;
   }
 
 }

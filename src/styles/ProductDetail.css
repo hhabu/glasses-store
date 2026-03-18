@@ -114,6 +114,40 @@
   gap: 8px;
 }
 
+.product-detail-prescription {
+  display: grid;
+  gap: 10px;
+}
+
+.product-detail-prescription-title {
+  margin: 0;
+  color: var(--ultras-muted);
+  font-weight: 600;
+}
+
+.product-detail-prescription-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.product-detail-prescription-option {
+  border: 1px solid #e4d7ca;
+  background: #fff;
+  color: var(--ultras-ink);
+  border-radius: 999px;
+  padding: 6px 12px;
+  min-width: 42px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.product-detail-prescription-option.is-active {
+  border-color: var(--ultras-amber);
+  background: rgba(199, 122, 42, 0.14);
+  color: var(--ultras-amber);
+}
+
 .product-detail-actions {
   display: flex;
   gap: 12px;

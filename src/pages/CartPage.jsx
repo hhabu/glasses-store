@@ -14,6 +14,23 @@ function readCartFromStorage() {
   }
 }
 
+function formatPrescription(value) {
+  if (value === undefined || value === null || value === "") {
+    return "";
+  }
+
+  const amount = Number(value);
+  if (Number.isNaN(amount)) {
+    return String(value);
+  }
+
+  if (amount === 0) {
+    return "0.00";
+  }
+
+  return `-${Math.abs(amount).toFixed(2)}`;
+}
+
 export default function CartPage() {
   const [cartItems, setCartItems] = useState(readCartFromStorage);
   const navigate = useNavigate();
@@ -68,7 +85,12 @@ export default function CartPage() {
                   <h3>{item.name}</h3>
                   <p>Brand: {item.brand}</p>
                   <p>Color: {item.color}</p>
+                  {item.prescription !== undefined && item.prescription !== null ? (
+                    <p>Prescription: {formatPrescription(item.prescription)}</p>
+                  ) : null}
                   {item.lensName ? <p>Lens: {item.lensName}</p> : null}
+                  {item.eyeProfileName ? <p>Eye Profile: {item.eyeProfileName}</p> : null}
+                  {item.eyeProfileSummary ? <p>{item.eyeProfileSummary}</p> : null}
                   <p>Price: {formatVND(item.price)}</p>
                 </div>
 

@@ -2,44 +2,75 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import "../styles/PaymentPage.css";
 import { formatVND } from "../utils/currency";
+import { useAuth } from "../context/AuthContext";
+import { fetchOrderById, mapApiOrderToView, updateOrder } from "../services/orderApi";
 
-const ORDERS_KEY = "orders";
 const CART_KEY = "cart";
 const ONLINE_METHOD = "ONLINE_BANKING";
 
-function readOrders() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(ORDERS_KEY));
-    return Array.isArray(stored) ? stored : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveOrders(orders) {
-  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-}
-
-function getOrderById(orderId) {
-  if (!orderId) {
+function addMinutes(isoDate, minutes) {
+  const parsed = new Date(isoDate).getTime();
+  if (Number.isNaN(parsed)) {
     return null;
   }
-  const orders = readOrders();
-  return orders.find((order) => order.id === orderId) ?? null;
+  return parsed + minutes * 60 * 1000;
 }
 
 export default function PaymentPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const orderId = location.state?.orderId;
-  const [order, setOrder] = useState(() => getOrderById(orderId));
+  const accountId =
+    user?.id === undefined || user?.id === null || user?.id === ""
+      ? ""
+      : String(user.id);
+  const [order, setOrder] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState("");
   const [now, setNow] = useState(0);
 
   useEffect(() => {
-    setOrder(getOrderById(orderId));
-  }, [orderId]);
+    if (!orderId) {
+      setOrder(null);
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoading(true);
+    setMessage("");
+
+    fetchOrderById(orderId)
+      .then((data) => {
+        if (!isMounted) {
+          return;
+        }
+        const mapped = mapApiOrderToView(data);
+        if (accountId && String(mapped.customer?.id ?? "") !== accountId) {
+          setOrder(null);
+          setMessage("Order not found.");
+          return;
+        }
+        setOrder(mapped);
+      })
+      .catch(() => {
+        if (isMounted) {
+          setOrder(null);
+          setMessage("Failed to load payment order.");
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [accountId, orderId]);
 
   useEffect(() => {
     setNow(Date.now());
@@ -50,13 +81,11 @@ export default function PaymentPage() {
   }, []);
 
   const expiresAtMs = useMemo(() => {
-    const value = order?.payment?.expiresAt;
-    if (!value) {
+    if (!order) {
       return null;
     }
-    const parsed = new Date(value).getTime();
-    return Number.isNaN(parsed) ? null : parsed;
-  }, [order?.payment?.expiresAt]);
+    return addMinutes(order.createdAt || order.updatedAt, 15);
+  }, [order]);
 
   const secondsLeft = useMemo(() => {
     if (!expiresAtMs) {
@@ -73,33 +102,46 @@ export default function PaymentPage() {
     if (!order || !isExpired || !isPending) {
       return;
     }
-    const updatedOrder = {
-      ...order,
-      payment: {
-        ...order.payment,
-        status: "EXPIRED",
-      },
-      status: "PAYMENT_EXPIRED",
+
+    let isMounted = true;
+    const expireOrder = async () => {
+      try {
+        const updated = await updateOrder(order.id, {
+          ...(order.raw || {}),
+          status: "PAYMENT_EXPIRED",
+          payment_status: "EXPIRED",
+          updatedAt: new Date().toISOString(),
+        });
+        if (!isMounted) {
+          return;
+        }
+        setOrder(mapApiOrderToView(updated));
+        setMessage("QR has expired. Please go back to checkout to create a new payment.");
+      } catch {
+        if (isMounted) {
+          setMessage("QR has expired. Failed to sync status, please reload.");
+        }
+      }
     };
-    const nextOrders = readOrders().map((item) =>
-      item.id === updatedOrder.id ? updatedOrder : item
-    );
-    saveOrders(nextOrders);
-    setOrder(updatedOrder);
-    setMessage("QR has expired. Please go back to checkout to create a new payment.");
+
+    expireOrder();
+    return () => {
+      isMounted = false;
+    };
   }, [isExpired, isPending, order]);
 
-  const updateOrderAndStorage = (updater) => {
+  const updateOrderOnServer = async (overrides) => {
     if (!order) {
       return null;
     }
-    const updatedOrder = updater(order);
-    const nextOrders = readOrders().map((item) =>
-      item.id === updatedOrder.id ? updatedOrder : item
-    );
-    saveOrders(nextOrders);
-    setOrder(updatedOrder);
-    return updatedOrder;
+    const updatedRaw = await updateOrder(order.id, {
+      ...(order.raw || {}),
+      ...overrides,
+      updatedAt: new Date().toISOString(),
+    });
+    const mapped = mapApiOrderToView(updatedRaw);
+    setOrder(mapped);
+    return mapped;
   };
 
   const mockCheckPaymentStatus = () => {
@@ -119,42 +161,59 @@ export default function PaymentPage() {
     const nextStatus = mockCheckPaymentStatus();
 
     if (nextStatus === "PAID") {
-      const updated = updateOrderAndStorage((current) => ({
-        ...current,
-        paidAt: new Date().toISOString(),
-        payment: {
-          ...current.payment,
-          status: "PAID",
-        },
-        status: "PLACED",
-      }));
-      localStorage.setItem(CART_KEY, JSON.stringify([]));
-      setChecking(false);
-      navigate("/orders", {
-        replace: true,
-        state: { justPaid: true, orderId: updated?.id ?? order.id },
-      });
-      return;
+      try {
+        const updated = await updateOrderOnServer({
+          status: "PLACED",
+          payment_status: "PAID",
+          paidAt: new Date().toISOString(),
+        });
+        localStorage.setItem(CART_KEY, JSON.stringify([]));
+        setChecking(false);
+        navigate("/orders", {
+          replace: true,
+          state: { justPaid: true, orderId: updated?.orderCode ?? updated?.id ?? order.id },
+        });
+        return;
+      } catch {
+        setChecking(false);
+        setMessage("Payment captured, but failed to update order. Please retry.");
+        return;
+      }
     }
 
     setChecking(false);
     setMessage("Payment is still pending. Please complete transfer and try again.");
   };
 
-  const handleCancel = () => {
-    updateOrderAndStorage((current) => ({
-      ...current,
-      payment: {
-        ...current.payment,
+  const handleCancel = async () => {
+    if (!order) {
+      return;
+    }
+
+    try {
+      await updateOrderOnServer({
         status: "CANCELLED",
-      },
-      status: "CANCELLED",
-    }));
-    navigate("/orders", { replace: true });
+        payment_status: "CANCELLED",
+      });
+      navigate("/orders", { replace: true });
+    } catch {
+      setMessage("Failed to cancel payment. Please try again.");
+    }
   };
 
   if (!orderId) {
     return <Navigate to="/checkout" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="payment-page">
+        <div className="payment-card">
+          <h2>Online Banking Payment</h2>
+          <p>Loading payment order...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!order) {
@@ -170,22 +229,23 @@ export default function PaymentPage() {
       <div className="payment-card">
         <h2>Online Banking Payment</h2>
         <p className="payment-order-id">
-          Order: <strong>{order.id}</strong>
+          Order: <strong>{order.orderCode || order.id}</strong>
         </p>
 
         <div className="payment-layout">
           <div className="payment-qr-block">
             <img
               src={
-                order.payment?.qrCodeUrl ??
-                "https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=DEMO-PAYMENT"
+                `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=ORDER-${encodeURIComponent(
+                  order.orderCode || order.id
+                )}`
               }
               alt="Payment QR"
               className="payment-qr-image"
             />
             <p className="payment-qr-caption">Scan QR with your banking app to pay.</p>
             <p className="payment-id">
-              Payment ID: <strong>{order.payment?.paymentId || "-"}</strong>
+              Payment ID: <strong>{order.orderCode || "-"}</strong>
             </p>
           </div>
 

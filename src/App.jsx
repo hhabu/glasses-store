@@ -4,7 +4,6 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 
 import HomePage from "./pages/HomePage";
-import ProductsPage from "./pages/ProductsPage";
 import ProductDetail from "./pages/ProductDetail";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
@@ -41,9 +40,16 @@ function App() {
       <Routes>
         {/* PUBLIC */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/products" element={<Navigate to="/" replace />} />
         <Route path="/products/:productId" element={<ProductDetail />} />
-        <Route path="/cart" element={<CartPage />} />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <CartPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/login"
           element={user ? <Navigate to="/" replace /> : <LoginPage />}
@@ -52,11 +58,46 @@ function App() {
           path="/register"
           element={user ? <Navigate to="/" replace /> : <RegisterPage />}
         />
-        <Route path="/profile" element={<CustomerProfile />} />
-        <Route path="/eye-profile" element={<EyeProfile />} />
-        <Route path="/orders" element={<OrderHistory />} />
-        <Route path="/returns" element={<ReturnRequest />} />
-        <Route path="/design-glasses" element={<DesignGlasses />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <CustomerProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/eye-profile"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <EyeProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <OrderHistory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/returns"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <ReturnRequest />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/design-glasses"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <DesignGlasses />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/checkout"
           element={

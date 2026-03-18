@@ -5,10 +5,22 @@ import { readCatalogProducts } from "../utils/productCatalog";
 import { computeProductDisplayPricing } from "../utils/pricing";
 import { formatVND } from "../utils/currency";
 import { useAuth } from "../context/AuthContext";
+import ActionToast from "../components/common/ActionToast";
+import useActionToast from "../hooks/useActionToast";
 
 function normalizeId(value) {
   return value === null || value === undefined ? "" : String(value);
 }
+
+function normalizeCategoryKey(value) {
+  const normalized = (value || "").toLowerCase().replace(/[\s-]+/g, "_").trim();
+  if (normalized === "optical") {
+    return "readymade_optical";
+  }
+  return normalized;
+}
+
+const PRESCRIPTION_OPTIONS = Array.from({ length: 9 }, (_, index) => String(index));
 
 export default function ProductDetail() {
   const { productId } = useParams();
@@ -26,7 +38,21 @@ export default function ProductDetail() {
   const [isLoading, setIsLoading] = useState(!initialProduct);
   const [notFound, setNotFound] = useState(false);
   const [catalogProducts, setCatalogProducts] = useState([]);
+  const [selectedPrescription, setSelectedPrescription] = useState("0");
   const relatedListRef = useRef(null);
+  const { toast, showToast } = useActionToast();
+
+  const ensureCustomer = () => {
+    if (!user) {
+      navigate("/login");
+      return false;
+    }
+    if (user.role !== "CUSTOMER") {
+      navigate("/");
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -67,22 +93,33 @@ export default function ProductDetail() {
     };
   }, [productId]);
 
+  useEffect(() => {
+    setSelectedPrescription("0");
+  }, [product?.product_id]);
+
+  const isReadymadeOptical = normalizeCategoryKey(product?.category) === "readymade_optical";
+
   const handleAddToCart = () => {
     if (!product) {
       return;
     }
 
-    if (!user || user.role !== "CUSTOMER") {
-      navigate("/login");
+    if (!ensureCustomer()) {
       return;
     }
 
+    const cartItemId = isReadymadeOptical
+      ? `${product.product_id}-sph-${selectedPrescription}`
+      : product.product_id;
+
     const cartItem = {
-      id: product.product_id,
+      id: cartItemId,
+      productId: product.product_id,
       name: product.name,
       brand: product.brand,
       color: product.color,
       image: product.image,
+      prescription: isReadymadeOptical ? selectedPrescription : null,
       price: product.pricingView?.finalPrice ?? product.price,
       originalPrice: product.pricingView?.originalPrice ?? product.price,
       discountPercent: product.pricingView?.discountPercent ?? 0,
@@ -91,7 +128,7 @@ export default function ProductDetail() {
 
     const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
     const existingIndex = currentCart.findIndex(
-      (item) => item.id === product.product_id
+      (item) => item.id === cartItemId
     );
 
     if (existingIndex >= 0) {
@@ -101,6 +138,7 @@ export default function ProductDetail() {
     }
 
     localStorage.setItem("cart", JSON.stringify(currentCart));
+    showToast("Added to cart successfully");
   };
 
   const handleDesignGlass = () => {
@@ -108,6 +146,9 @@ export default function ProductDetail() {
       return;
     }
 
+    if (!ensureCustomer()) {
+      return;
+    }
     localStorage.setItem("selectedDesignProduct", JSON.stringify(product));
     navigate("/design-glasses", { state: { selectedProduct: product } });
   };
@@ -174,8 +215,8 @@ export default function ProductDetail() {
     return (
       <div className="product-detail">
         <p className="product-detail-empty">Product not found.</p>
-        <button className="product-detail-back" onClick={() => navigate("/products")}>
-          Back to catalog
+        <button className="product-detail-back" onClick={() => navigate("/")}>
+          Back to home
         </button>
       </div>
     );
@@ -185,8 +226,8 @@ export default function ProductDetail() {
     <div className="product-detail-page">
       <div className="product-detail">
         <div className="product-detail-hero">
-          <button className="product-detail-back" onClick={() => navigate("/products")}>
-            Back to catalog
+          <button className="product-detail-back" onClick={() => navigate("/")}>
+            Back to home
           </button>
         </div>
 
@@ -221,6 +262,28 @@ export default function ProductDetail() {
                 </p>
               ))}
             </div>
+
+            {isReadymadeOptical ? (
+              <div className="product-detail-prescription">
+                <p className="product-detail-prescription-title">
+                  Prescription (0-8)
+                </p>
+                <div className="product-detail-prescription-options">
+                  {PRESCRIPTION_OPTIONS.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`product-detail-prescription-option ${
+                        selectedPrescription === value ? "is-active" : ""
+                      }`}
+                      onClick={() => setSelectedPrescription(value)}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="product-detail-actions">
               <button className="product-detail-btn" onClick={handleAddToCart}>
@@ -292,6 +355,9 @@ export default function ProductDetail() {
           </div>
         ) : null}
       </div>
+      {toast.message ? (
+        <ActionToast key={toast.key} message={toast.message} />
+      ) : null}
     </div>
   );
 }

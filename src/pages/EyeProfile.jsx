@@ -1,20 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import "../styles/EyeProfile.css";
 import { useAuth } from "../context/AuthContext";
-
-function buildStorageKey(user) {
-  const uniqueId = user?.id ?? user?.username ?? user?.email ?? "guest";
-  return `eye_profiles_${uniqueId}`;
-}
-
-function readProfiles(storageKey) {
-  try {
-    const raw = JSON.parse(localStorage.getItem(storageKey));
-    return Array.isArray(raw) ? raw : [];
-  } catch {
-    return [];
-  }
-}
+import {
+  createEyeProfile,
+  deleteEyeProfile,
+  fetchEyeProfilesByAccount,
+} from "../services/eyeProfileApi";
 
 function getEmptyForm() {
   return {
@@ -31,31 +22,88 @@ function getEmptyForm() {
 
 function buildEyeProfileFromForm(form) {
   return {
-    profileName: form.profileName.trim(),
+    profile_name: form.profileName.trim(),
+    left_eye_SPH: String(form.leftMyopia || "0"),
+    left_eye_CYL: String(form.leftAstigmatism || "0"),
+    left_eye_hyperropia: String(form.leftHyperopia || "0"),
+    right_eye_SPH: String(form.rightMyopia || "0"),
+    right_eye_CYL: String(form.rightAstigmatism || "0"),
+    right_eye_hyperropia: String(form.rightHyperopia || "0"),
+    note: form.note.trim(),
+  };
+}
+
+function mapApiProfileToView(item) {
+  return {
+    id: item?.id ?? "",
+    accountId: item?.account_id ?? "",
+    profileName: item?.profile_name ?? "",
     leftEye: {
-      myopia: Number(form.leftMyopia) || 0,
-      astigmatism: Number(form.leftAstigmatism) || 0,
-      hyperopia: Number(form.leftHyperopia) || 0,
+      myopia: item?.left_eye_SPH ?? "0",
+      astigmatism: item?.left_eye_CYL ?? "0",
+      hyperopia: item?.left_eye_hyperropia ?? "0",
     },
     rightEye: {
-      myopia: Number(form.rightMyopia) || 0,
-      astigmatism: Number(form.rightAstigmatism) || 0,
-      hyperopia: Number(form.rightHyperopia) || 0,
+      myopia: item?.right_eye_SPH ?? "0",
+      astigmatism: item?.right_eye_CYL ?? "0",
+      hyperopia: item?.right_eye_hyperropia ?? "0",
     },
-    note: form.note.trim(),
+    note: item?.note ?? "",
   };
 }
 
 export default function EyeProfile() {
   const { user } = useAuth();
-  const storageKey = useMemo(() => buildStorageKey(user), [user]);
-  const [profiles, setProfiles] = useState(() => readProfiles(storageKey));
+  const accountId = useMemo(() => {
+    if (user?.id === undefined || user?.id === null || user?.id === "") {
+      return "";
+    }
+    return String(user.id);
+  }, [user]);
+  const [profiles, setProfiles] = useState([]);
   const [form, setForm] = useState(() => getEmptyForm());
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState("");
 
   useEffect(() => {
-    setProfiles(readProfiles(storageKey));
-  }, [storageKey]);
+    const isCustomer = user?.role === "CUSTOMER";
+    if (!isCustomer || !accountId) {
+      setProfiles([]);
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoading(true);
+
+    fetchEyeProfilesByAccount(accountId)
+      .then((data) => {
+        if (!isMounted) {
+          return;
+        }
+        const list = (Array.isArray(data) ? data : []).map((item) =>
+          mapApiProfileToView(item)
+        );
+        setProfiles(list);
+      })
+      .catch(() => {
+        if (isMounted) {
+          setProfiles([]);
+          setMessage("Failed to load eye profiles.");
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [accountId, user?.role]);
 
   const isCustomer = user?.role === "CUSTOMER";
 
@@ -64,31 +112,52 @@ export default function EyeProfile() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!form.profileName.trim()) {
       setMessage("Please enter profile name.");
       return;
     }
+    if (!accountId) {
+      setMessage("Missing account id. Please re-login.");
+      return;
+    }
 
-    const payload = buildEyeProfileFromForm(form);
-    const newProfile = {
-      id: Date.now(),
-      ...payload,
-      createdAt: new Date().toISOString(),
+    const payload = {
+      account_id: accountId,
+      ...buildEyeProfileFromForm(form),
     };
-    const nextProfiles = [newProfile, ...profiles];
-    setMessage("Eye profile saved.");
 
-    setProfiles(nextProfiles);
-    localStorage.setItem(storageKey, JSON.stringify(nextProfiles));
-    setForm(getEmptyForm());
+    try {
+      setIsSaving(true);
+      const created = await createEyeProfile(payload);
+      const mapped = mapApiProfileToView(created);
+      setProfiles((prev) => [mapped, ...prev]);
+      setMessage("Eye profile saved.");
+      setForm(getEmptyForm());
+    } catch {
+      setMessage("Failed to save eye profile.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    const nextProfiles = profiles.filter((profile) => profile.id !== id);
-    setProfiles(nextProfiles);
-    localStorage.setItem(storageKey, JSON.stringify(nextProfiles));
+  const handleDelete = async (id) => {
+    const targetId = String(id ?? "");
+    if (!targetId) {
+      return;
+    }
+
+    try {
+      setDeletingId(targetId);
+      await deleteEyeProfile(targetId);
+      setProfiles((prev) => prev.filter((profile) => String(profile.id) !== targetId));
+      setMessage("Eye profile deleted.");
+    } catch {
+      setMessage("Failed to delete eye profile.");
+    } finally {
+      setDeletingId("");
+    }
   };
 
   if (!isCustomer) {
@@ -185,14 +254,18 @@ export default function EyeProfile() {
           />
 
           <div className="eye-form-actions">
-            <button type="submit">Save Eye Profile</button>
+            <button type="submit" disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save Eye Profile"}
+            </button>
           </div>
           {message ? <p className="eye-profile-message">{message}</p> : null}
         </form>
 
         <div className="eye-profile-list">
           <h3>Saved Profiles ({profiles.length})</h3>
-          {profiles.length === 0 ? (
+          {isLoading ? (
+            <p>Loading eye profiles...</p>
+          ) : profiles.length === 0 ? (
             <p>No eye profile yet.</p>
           ) : (
             profiles.map((profile) => (
@@ -204,8 +277,9 @@ export default function EyeProfile() {
                       type="button"
                       className="eye-delete-btn"
                       onClick={() => handleDelete(profile.id)}
+                      disabled={deletingId === String(profile.id)}
                     >
-                      Delete
+                      {deletingId === String(profile.id) ? "Deleting..." : "Delete"}
                     </button>
                   </div>
                 </div>

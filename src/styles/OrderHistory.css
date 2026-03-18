@@ -42,6 +42,34 @@
   gap: 18px;
 }
 
+.order-history-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.order-history-filter-btn {
+  border: 1px solid #efe6da;
+  background: #fff;
+  color: var(--order-muted);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.order-history-filter-btn:hover {
+  border-color: var(--order-amber);
+  color: var(--order-amber);
+}
+
+.order-history-filter-btn.is-active {
+  background: var(--order-amber);
+  border-color: var(--order-amber);
+  color: #fff;
+}
+
 .order-card {
   background: #fff;
   border-radius: 22px;
@@ -85,6 +113,38 @@
   text-align: right;
 }
 
+.order-status-note {
+  margin-top: 10px;
+  border: 1px solid #f1ddc6;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #fff7ef;
+  color: #8a571d;
+  line-height: 1.5;
+}
+
+.order-status-note p {
+  margin: 0;
+}
+
+.order-status-note p + p {
+  margin-top: 8px;
+}
+
+.order-status-note-title {
+  font-weight: 700;
+}
+
+.order-status-link {
+  color: #8a571d;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.order-status-link:hover {
+  color: #6f4311;
+}
+
 .order-actions {
   margin-top: 12px;
   display: flex;
@@ -111,6 +171,15 @@
 }
 
 @media (max-width: 768px) {
+  .order-history-filters {
+    gap: 8px;
+  }
+
+  .order-history-filter-btn {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.9rem;
+  }
+
   .order-card-header {
     flex-direction: column;
     align-items: flex-start;

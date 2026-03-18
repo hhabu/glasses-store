@@ -5,9 +5,9 @@ import * as Yup from "yup";
 import "../styles/CheckoutPage.css";
 import { formatVND } from "../utils/currency";
 import { useAuth } from "../context/AuthContext";
+import { createOrder } from "../services/orderApi";
 
 const CART_KEY = "cart";
-const ORDERS_KEY = "orders";
 const PAYMENT_METHODS = {
   COD: "COD",
   ONLINE_BANKING: "ONLINE_BANKING",
@@ -27,6 +27,8 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS.COD);
+  const [submitError, setSubmitError] = useState("");
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   const totalPrice = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -44,60 +46,59 @@ export default function CheckoutPage() {
   });
 
   const createOrderFromForm = (values, method) => {
-    const now = Date.now();
-    const expiresAt = new Date(now + 15 * 60 * 1000).toISOString();
+    const now = new Date();
+    const accountId =
+      user?.id === undefined || user?.id === null || user?.id === ""
+        ? ""
+        : String(user.id);
+    const normalizedItems = cartItems.map((item) => {
+      const quantity = Math.max(1, Number(item.quantity) || 1);
+      const unitPrice = Number(item.price) || 0;
+      return {
+        id: String(item.id ?? ""),
+        product_id: String(item.productId ?? item.frameId ?? item.id ?? ""),
+        frame_id:
+          item.frameId === undefined || item.frameId === null
+            ? ""
+            : String(item.frameId),
+        lens_id:
+          item.lensId === undefined || item.lensId === null
+            ? ""
+            : String(item.lensId),
+        name: item.name ?? "",
+        brand: item.brand ?? "",
+        color: item.color ?? "",
+        image: item.image ?? "",
+        prescription: item.prescription ?? "",
+        lens_name: item.lensName ?? "",
+        eye_profile_id:
+          item.eyeProfileId === undefined || item.eyeProfileId === null
+            ? ""
+            : String(item.eyeProfileId),
+        eye_profile_name: item.eyeProfileName ?? "",
+        eye_profile_summary: item.eyeProfileSummary ?? "",
+        quantity,
+        unit_price: unitPrice,
+        line_total: unitPrice * quantity,
+      };
+    });
 
     return {
-      id: `ORD-${now}`,
-      createdAt: new Date().toISOString(),
-      customer: {
-        id: user?.id ?? null,
-        fullName: values.fullName.trim(),
-        phone: values.phone.trim(),
-        address: values.address.trim(),
-        note: values.note.trim(),
-      },
-      items: cartItems,
-      totalPrice,
-      payment: {
-        method,
-        status: method === PAYMENT_METHODS.COD ? "UNPAID_COD" : "PENDING_QR",
-        paymentId: method === PAYMENT_METHODS.ONLINE_BANKING ? `PAY-${now}` : null,
-        qrCodeUrl:
-          method === PAYMENT_METHODS.ONLINE_BANKING
-            ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=ORDER-${now}`
-            : null,
-        expiresAt: method === PAYMENT_METHODS.ONLINE_BANKING ? expiresAt : null,
-      },
+      account_id: accountId,
+      order_code: `ORD-${now.getTime()}`,
       status: method === PAYMENT_METHODS.COD ? "PLACED" : "PENDING_PAYMENT",
+      payment_method: method,
+      payment_status: method === PAYMENT_METHODS.COD ? "UNPAID_COD" : "PENDING_QR",
+      item: normalizedItems,
+      total_price: totalPrice,
+      shipping_name: values.fullName.trim(),
+      shipping_phone: values.phone.trim(),
+      shipping_address: values.address.trim(),
+      note: values.note.trim(),
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+      paidAt: "",
     };
-  };
-
-  const saveOrder = (newOrder) => {
-    let orders = [];
-    try {
-      const stored = JSON.parse(localStorage.getItem(ORDERS_KEY));
-      orders = Array.isArray(stored) ? stored : [];
-    } catch {
-      orders = [];
-    }
-
-    localStorage.setItem(ORDERS_KEY, JSON.stringify([newOrder, ...orders]));
-  };
-
-  const handleCodOrder = (values, { resetForm }) => {
-    const newOrder = createOrderFromForm(values, PAYMENT_METHODS.COD);
-    saveOrder(newOrder);
-    localStorage.setItem(CART_KEY, JSON.stringify([]));
-    resetForm();
-    navigate("/orders", { replace: true, state: { justPlaced: true, orderId: newOrder.id } });
-  };
-
-  const startOnlineBanking = (values, { resetForm }) => {
-    const newOrder = createOrderFromForm(values, PAYMENT_METHODS.ONLINE_BANKING);
-    saveOrder(newOrder);
-    resetForm();
-    navigate("/payment", { state: { orderId: newOrder.id } });
   };
 
   const formik = useFormik({
@@ -108,12 +109,49 @@ export default function CheckoutPage() {
       note: "",
     },
     validationSchema: deliverySchema,
-    onSubmit: (values, helpers) => {
-      if (paymentMethod !== PAYMENT_METHODS.COD) {
-        startOnlineBanking(values, helpers);
+    onSubmit: async (values, { resetForm, setSubmitting }) => {
+      setSubmitError("");
+      const accountId =
+        user?.id === undefined || user?.id === null || user?.id === ""
+          ? ""
+          : String(user.id);
+      if (!accountId) {
+        setSubmitError("Missing account id. Please re-login and try again.");
+        setSubmitting(false);
         return;
       }
-      handleCodOrder(values, helpers);
+
+      setIsSavingOrder(true);
+      try {
+        const payload = createOrderFromForm(values, paymentMethod);
+        const createdOrder = await createOrder(payload);
+
+        if (paymentMethod === PAYMENT_METHODS.COD) {
+          localStorage.setItem(CART_KEY, JSON.stringify([]));
+          resetForm();
+          navigate("/orders", {
+            replace: true,
+            state: {
+              justPlaced: true,
+              orderId: createdOrder?.order_code || createdOrder?.id || payload.order_code,
+            },
+          });
+          return;
+        }
+
+        if (!createdOrder?.id) {
+          setSubmitError("Order created but payment session is missing. Please try again.");
+          return;
+        }
+
+        resetForm();
+        navigate("/payment", { state: { orderId: createdOrder.id } });
+      } catch {
+        setSubmitError("Failed to place order. Please try again.");
+      } finally {
+        setIsSavingOrder(false);
+        setSubmitting(false);
+      }
     },
   });
 
@@ -181,12 +219,17 @@ export default function CheckoutPage() {
             <button
               type="submit"
               className="place-order-btn"
-              disabled={paymentMethod !== PAYMENT_METHODS.COD}
+              disabled={paymentMethod !== PAYMENT_METHODS.COD || isSavingOrder}
             >
               {paymentMethod === PAYMENT_METHODS.COD
-                ? "Place Order"
+                ? isSavingOrder
+                  ? "Placing..."
+                  : "Place Order"
                 : "Place Order (COD only)"}
             </button>
+            {submitError ? (
+              <p className="checkout-field-error">{submitError}</p>
+            ) : null}
           </form>
         </section>
 
@@ -235,9 +278,10 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   className="checkout-online-btn"
+                  disabled={isSavingOrder}
                   onClick={formik.submitForm}
                 >
-                  Generate QR & Continue
+                  {isSavingOrder ? "Generating..." : "Generate QR & Continue"}
                 </button>
               ) : null}
             </div>

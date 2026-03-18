@@ -2,18 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/ReturnRequest.css";
 import { formatVND } from "../utils/currency";
+import { useAuth } from "../context/AuthContext";
+import {
+  fetchOrdersByAccount,
+  mapApiOrderToView,
+  updateOrder,
+} from "../services/orderApi";
 
-const ORDERS_KEY = "orders";
 const RETURN_REQUESTS_KEY = "return_requests";
-
-function readOrders() {
-  try {
-    const data = JSON.parse(localStorage.getItem(ORDERS_KEY));
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
 
 function readReturnRequests() {
   try {
@@ -28,9 +24,9 @@ function buildReturnItems(order) {
   return (order?.items ?? []).map((item) => ({
     id: item.id,
     name: item.name,
-    price: item.price,
-    maxQty: item.quantity,
-    quantity: Math.min(1, item.quantity),
+    price: Number(item.price ?? item.unit_price ?? 0),
+    maxQty: Number(item.quantity ?? 1),
+    quantity: Math.min(1, Number(item.quantity ?? 1)),
     selected: true,
   }));
 }
@@ -38,22 +34,71 @@ function buildReturnItems(order) {
 export default function ReturnRequest() {
   const location = useLocation();
   const navigate = useNavigate();
-  const orders = useMemo(() => readOrders(), []);
+  const { user } = useAuth();
+  const accountId =
+    user?.id === undefined || user?.id === null || user?.id === ""
+      ? ""
+      : String(user.id);
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [orderLoadError, setOrderLoadError] = useState("");
+
+  useEffect(() => {
+    if (!accountId) {
+      setOrders([]);
+      setIsLoadingOrders(false);
+      setOrderLoadError("Missing account id. Please re-login.");
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoadingOrders(true);
+    setOrderLoadError("");
+
+    fetchOrdersByAccount(accountId)
+      .then((data) => {
+        if (!isMounted) {
+          return;
+        }
+        const list = (Array.isArray(data) ? data : [])
+          .map((item) => mapApiOrderToView(item))
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt || 0).getTime() -
+              new Date(a.createdAt || 0).getTime()
+          );
+        setOrders(list);
+      })
+      .catch(() => {
+        if (isMounted) {
+          setOrders([]);
+          setOrderLoadError("Failed to load orders.");
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoadingOrders(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [accountId]);
+
   const deliveredOrders = useMemo(() => {
     return orders.filter(
       (order) => String(order.status || "").toLowerCase() === "delivered"
     );
   }, [orders]);
 
-  const initialOrderId =
-    location.state?.order?.id || deliveredOrders[0]?.id || "";
-  const [selectedOrderId, setSelectedOrderId] = useState(initialOrderId);
+  const [selectedOrderId, setSelectedOrderId] = useState("");
   const selectedOrder = useMemo(() => {
     return deliveredOrders.find((order) => order.id === selectedOrderId) || null;
   }, [deliveredOrders, selectedOrderId]);
 
   const [returnItems, setReturnItems] = useState(() =>
-    buildReturnItems(location.state?.order || deliveredOrders[0])
+    buildReturnItems(location.state?.order)
   );
   const [reason, setReason] = useState("Wrong size");
   const [note, setNote] = useState("");
@@ -63,6 +108,28 @@ export default function ReturnRequest() {
   const [refundMethod, setRefundMethod] = useState("Store credit");
   const [error, setError] = useState("");
   const [successId, setSuccessId] = useState("");
+
+  useEffect(() => {
+    const stateOrderId = location.state?.order?.id
+      ? String(location.state.order.id)
+      : "";
+    if (
+      stateOrderId &&
+      deliveredOrders.some((order) => String(order.id) === stateOrderId)
+    ) {
+      setSelectedOrderId(stateOrderId);
+      return;
+    }
+
+    if (
+      selectedOrderId &&
+      deliveredOrders.some((order) => String(order.id) === String(selectedOrderId))
+    ) {
+      return;
+    }
+
+    setSelectedOrderId(deliveredOrders[0]?.id ? String(deliveredOrders[0].id) : "");
+  }, [deliveredOrders, location.state, selectedOrderId]);
 
   useEffect(() => {
     if (!selectedOrder) {
@@ -98,7 +165,7 @@ export default function ReturnRequest() {
     );
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
     setSuccessId("");
@@ -118,6 +185,18 @@ export default function ReturnRequest() {
 
     if (!reason.trim()) {
       setError("Please choose a return reason.");
+      return;
+    }
+
+    let updatedOrder = null;
+    try {
+      updatedOrder = await updateOrder(selectedOrder.id, {
+        ...(selectedOrder.raw || {}),
+        status: "RETURN_REQUESTED",
+        updatedAt: new Date().toISOString(),
+      });
+    } catch {
+      setError("Failed to update order status. Please try again.");
       return;
     }
 
@@ -150,12 +229,21 @@ export default function ReturnRequest() {
       JSON.stringify([newRequest, ...existing])
     );
 
-    const updatedOrders = orders.map((order) =>
+    setOrders((prev) => prev.map((order) =>
       order.id === selectedOrder.id
-        ? { ...order, status: "RETURN_REQUESTED" }
+        ? mapApiOrderToView(updatedOrder)
         : order
+    ));
+
+    setReturnItems((prev) => prev.map((item) => ({
+      ...item,
+      selected: false,
+      quantity: Math.min(1, item.maxQty),
+    })));
+
+    setSelectedOrderId((prev) =>
+      prev === selectedOrder.id ? "" : prev
     );
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(updatedOrders));
 
     setSuccessId(requestId);
   };
@@ -169,7 +257,18 @@ export default function ReturnRequest() {
           Submit a return request for delivered orders.
         </p>
 
-        {deliveredOrders.length === 0 ? (
+        {isLoadingOrders ? (
+          <div className="return-empty">
+            <p>Loading delivered orders...</p>
+          </div>
+        ) : orderLoadError ? (
+          <div className="return-empty">
+            <p>{orderLoadError}</p>
+            <button className="return-link-btn" onClick={() => navigate("/orders")}>
+              Back to Order History
+            </button>
+          </div>
+        ) : deliveredOrders.length === 0 ? (
           <div className="return-empty">
             <p>No delivered orders found.</p>
             <button className="return-link-btn" onClick={() => navigate("/orders")}>
@@ -187,7 +286,7 @@ export default function ReturnRequest() {
               >
                 {deliveredOrders.map((order) => (
                   <option key={order.id} value={order.id}>
-                    {order.id} - {new Date(order.createdAt).toLocaleDateString()}
+                    {(order.orderCode || order.id)} - {new Date(order.createdAt).toLocaleDateString()}
                   </option>
                 ))}
               </select>

@@ -8,6 +8,7 @@ import UserManagement from "../components/admin/UserManagement";
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState("BUSINESS_RULES");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -46,7 +47,9 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="admin-dashboard">
+    <div
+      className={`admin-dashboard ${isSidebarOpen ? "" : "is-sidebar-collapsed"}`}
+    >
       {/* ================= SIDEBAR ================= */}
       <aside className="admin-sidebar">
         <h3 className="sidebar-title">Admin Panel</h3>
@@ -94,7 +97,17 @@ export default function AdminDashboard() {
       </aside>
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="admin-content">{renderContent()}</main>
+      <main className="admin-content">
+        <button
+          className="admin-menu-toggle"
+          type="button"
+          onClick={() => setIsSidebarOpen((prev) => !prev)}
+          aria-expanded={isSidebarOpen}
+        >
+          {isSidebarOpen ? "Hide menu" : "Show menu"}
+        </button>
+        <div className="admin-panel">{renderContent()}</div>
+      </main>
     </div>
   );
 }

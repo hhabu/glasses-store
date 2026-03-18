@@ -5,6 +5,8 @@ import { readCatalogProducts } from "../utils/productCatalog";
 import { computeProductDisplayPricing } from "../utils/pricing";
 import { formatVND } from "../utils/currency";
 import { useAuth } from "../context/AuthContext";
+import ActionToast from "../components/common/ActionToast";
+import useActionToast from "../hooks/useActionToast";
 
 function normalizeText(value) {
   return (value || "")
@@ -35,6 +37,19 @@ export default function ProductsPage() {
   const [sortOrder, setSortOrder] = useState(null);
   const filterRef = useRef(null);
   const sortRef = useRef(null);
+  const { toast, showToast } = useActionToast();
+
+  const ensureCustomer = () => {
+    if (!user) {
+      navigate("/login");
+      return false;
+    }
+    if (user.role !== "CUSTOMER") {
+      navigate("/");
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -88,8 +103,7 @@ export default function ProductsPage() {
   }, [isFilterOpen, isSortOpen]);
 
   const handleAddToCart = (glasses) => {
-    if (!user || user.role !== "CUSTOMER") {
-      navigate("/login");
+    if (!ensureCustomer()) {
       return;
     }
 
@@ -117,6 +131,7 @@ export default function ProductsPage() {
     }
 
     localStorage.setItem("cart", JSON.stringify(currentCart));
+    showToast("Added to cart successfully");
   };
 
   const brandOptions = useMemo(() => {
@@ -180,6 +195,9 @@ export default function ProductsPage() {
   }, [products, searchKeyword, selectedBrands, selectedPriceRange, sortOrder]);
 
   const handleDesignGlass = (glasses) => {
+    if (!ensureCustomer()) {
+      return;
+    }
     localStorage.setItem("selectedDesignProduct", JSON.stringify(glasses));
     navigate("/design-glasses", { state: { selectedProduct: glasses } });
   };
@@ -394,6 +412,9 @@ export default function ProductsPage() {
           ))}
         </div>
       )}
+      {toast.message ? (
+        <ActionToast key={toast.key} message={toast.message} />
+      ) : null}
     </div>
   );
 }

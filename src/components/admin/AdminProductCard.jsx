@@ -15,6 +15,7 @@ export default function AdminProductCard({ product, onSave, mode = "basic" }) {
   const isPricingMode = mode === "pricing";
   const [show, setShow] = useState(false);
   const [editData, setEditData] = useState({ ...normalizedProduct });
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleChange = (field, value) => {
     setEditData({ ...editData, [field]: value });
@@ -33,11 +34,18 @@ export default function AdminProductCard({ product, onSave, mode = "basic" }) {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const normalized = normalizeProductPricing(editData);
-    onSave(normalized);
-    setEditData(normalized);
-    setShow(false);
+    try {
+      setIsSaving(true);
+      const savedProduct = await onSave(normalized);
+      setEditData(normalizeProductPricing(savedProduct || normalized));
+      setShow(false);
+    } catch {
+      // Keep modal open on failure so admin can adjust and retry.
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -210,8 +218,9 @@ export default function AdminProductCard({ product, onSave, mode = "basic" }) {
           <Button
             variant="success"
             onClick={handleSave}
+            disabled={isSaving}
           >
-            Save
+            {isSaving ? "Saving..." : "Save"}
           </Button>
         </Modal.Footer>
       </Modal>

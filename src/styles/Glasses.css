@@ -32,6 +32,47 @@ body {
   justify-content: flex-start;
 }
 
+.admin-pagination {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-pagination .page-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-pagination .page-btn {
+  background: #ffffff;
+  border: 1px solid #efe6da;
+  color: #111111;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.admin-pagination .page-btn:hover:not(:disabled) {
+  border-color: #c77a2a;
+  color: #c77a2a;
+}
+
+.admin-pagination .page-btn.is-active {
+  background: #c77a2a;
+  color: #ffffff;
+  border-color: #c77a2a;
+}
+
+.admin-pagination .page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .glasses-card {
   flex: 1 1 220px;
   max-width: 240px;

@@ -27,6 +27,11 @@ function getProductId(item) {
   return raw === null || raw === undefined ? "" : String(raw);
 }
 
+function getApiRecordId(item) {
+  const raw = item?.id ?? item?.product_id;
+  return raw === null || raw === undefined ? "" : String(raw);
+}
+
 function mergeProductsWithSource(sourceProducts, storedProducts) {
   const sourceArray = Array.isArray(sourceProducts)
     ? sourceProducts.map((item) => ensureProductId(item))
@@ -116,8 +121,20 @@ export async function createCatalogProduct(product) {
 }
 
 export async function updateCatalogProduct(product) {
-  const productId = getProductId(product);
-  const updated = ensureProductId(await updateGlasses(productId, product));
+  const normalizedProduct = ensureProductId(product);
+  const productId = getProductId(normalizedProduct);
+  const apiId = getApiRecordId(normalizedProduct);
+
+  if (!apiId) {
+    throw new Error("updateCatalogProduct requires a valid id.");
+  }
+
+  const payload = {
+    ...normalizedProduct,
+    id: apiId,
+    product_id: productId || apiId,
+  };
+  const updated = ensureProductId(await updateGlasses(apiId, payload));
   const cachedSource = safeParseJson(localStorage.getItem(SOURCE_CACHE_KEY));
   const updatedSource = upsertByProductId(cachedSource, updated);
   localStorage.setItem(SOURCE_CACHE_KEY, JSON.stringify(updatedSource));
