@@ -4,6 +4,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 
 import HomePage from "./pages/HomePage";
+import ProductsPage from "./pages/ProductsPage";
 import ProductDetail from "./pages/ProductDetail";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
@@ -11,6 +12,8 @@ import RegisterPage from "./pages/RegisterPage";
 import SalesDashboard from "./pages/SalesDashboard";
 import OperationDashboard from "./pages/OperationDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProductCreatePage from "./pages/AdminProductCreatePage";
+import AdminProductEditPage from "./pages/AdminProductEditPage";
 import CustomerProfile from "./pages/CustomerProfile";
 import OrderHistory from "./pages/OrderHistory";
 import ReturnRequest from "./pages/ReturnRequest";
@@ -40,7 +43,7 @@ function App() {
       <Routes>
         {/* PUBLIC */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/products" element={<Navigate to="/" replace />} />
+        <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:productId" element={<ProductDetail />} />
         <Route
           path="/cart"
@@ -136,6 +139,22 @@ function App() {
         />
 
         {/* ADMIN ONLY */}
+        <Route
+          path="/admin/products/new"
+          element={
+            <ProtectedRoute allowRoles={["ADMIN"]}>
+              <AdminProductCreatePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/products/:productId/edit"
+          element={
+            <ProtectedRoute allowRoles={["ADMIN"]}>
+              <AdminProductEditPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin"
           element={

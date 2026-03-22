@@ -4,6 +4,10 @@ import "../styles/ProductsPage.css";
 import { readCatalogProducts } from "../utils/productCatalog";
 import { computeProductDisplayPricing } from "../utils/pricing";
 import { formatVND } from "../utils/currency";
+import {
+  buildCategoryTabs,
+  normalizeCategoryKey,
+} from "../utils/catalogCategories";
 import { useAuth } from "../context/AuthContext";
 import ActionToast from "../components/common/ActionToast";
 import useActionToast from "../hooks/useActionToast";
@@ -26,8 +30,9 @@ const PRICE_RANGES = [
 export default function ProductsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const searchKeyword = searchParams.get("q") || "";
+  const requestedCategoryKey = normalizeCategoryKey(searchParams.get("category") || "");
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -102,6 +107,40 @@ export default function ProductsPage() {
     };
   }, [isFilterOpen, isSortOpen]);
 
+  const catalogProducts = useMemo(
+    () =>
+      (Array.isArray(products) ? products : []).map((item) =>
+        computeProductDisplayPricing(item)
+      ),
+    [products]
+  );
+
+  const categoryTabs = useMemo(() => buildCategoryTabs(catalogProducts), [catalogProducts]);
+
+  const activeCategory = useMemo(
+    () => {
+      if (categoryTabs.length === 0) {
+        return null;
+      }
+
+      return (
+        categoryTabs.find((category) => category.key === requestedCategoryKey) ??
+        categoryTabs[0]
+      );
+    },
+    [categoryTabs, requestedCategoryKey]
+  );
+
+  const categoryProducts = useMemo(() => {
+    if (!activeCategory?.key) {
+      return [];
+    }
+
+    return catalogProducts.filter(
+      (item) => normalizeCategoryKey(item.category) === activeCategory.key
+    );
+  }, [activeCategory, catalogProducts]);
+
   const handleAddToCart = (glasses) => {
     if (!ensureCustomer()) {
       return;
@@ -136,22 +175,19 @@ export default function ProductsPage() {
 
   const brandOptions = useMemo(() => {
     const unique = new Set();
-    products.forEach((item) => {
+    categoryProducts.forEach((item) => {
       if (item?.brand) {
         unique.add(item.brand);
       }
     });
     return Array.from(unique).sort((a, b) => a.localeCompare(b));
-  }, [products]);
+  }, [categoryProducts]);
 
   const filteredGlasses = useMemo(() => {
-    const baseList = (Array.isArray(products) ? products : []).map((item) =>
-      computeProductDisplayPricing(item)
-    );
     const normalizedQuery = normalizeText(searchKeyword);
     const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
 
-    let nextList = baseList;
+    let nextList = categoryProducts;
 
     if (queryTokens.length > 0) {
       nextList = nextList.filter((item) => {
@@ -192,7 +228,7 @@ export default function ProductsPage() {
     }
 
     return nextList;
-  }, [products, searchKeyword, selectedBrands, selectedPriceRange, sortOrder]);
+  }, [categoryProducts, searchKeyword, selectedBrands, selectedPriceRange, sortOrder]);
 
   const handleDesignGlass = (glasses) => {
     if (!ensureCustomer()) {
@@ -215,6 +251,90 @@ export default function ProductsPage() {
   const handleResetFilters = () => {
     setSelectedBrands([]);
     setSelectedPriceRange("all");
+    setSortOrder(null);
+  };
+
+  const handleSelectCategory = (categoryKey) => {
+    setSelectedBrands([]);
+    setSelectedPriceRange("all");
+    setSortOrder(null);
+    setIsFilterOpen(false);
+    setIsSortOpen(false);
+
+    const nextSearch = new URLSearchParams(searchParams);
+    nextSearch.set("category", categoryKey);
+    setSearchParams(nextSearch);
+  };
+
+  const renderProductCard = (item) => {
+    const categoryKey = normalizeCategoryKey(item?.category);
+    const isFrameForDesign = categoryKey === "frame_for_design";
+    const showAddToCartAction = !isFrameForDesign;
+    const showDesignAction = isFrameForDesign;
+
+    return (
+      <div
+        className="product-card"
+        key={item.product_id}
+        onClick={() => handleOpenDetail(item)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleOpenDetail(item);
+          }
+        }}
+      >
+        <div className="product-image-wrap">
+          <img src={item.image} alt={item.name} className="product-image" />
+          {item.pricingView?.isOnSale ? (
+            <span className="product-badge">-{item.pricingView.discountPercent}%</span>
+          ) : null}
+        </div>
+        <div className="product-body">
+          <div className="product-meta">
+            <span>{item.brand}</span>
+            <span>{item.color}</span>
+          </div>
+          <h3 className="product-title">{item.name}</h3>
+          <div className="product-price">
+            <span className="price-now">
+              {formatVND(item.pricingView?.finalPrice ?? item.price)}
+            </span>
+            {item.pricingView?.isOnSale ? (
+              <span className="price-old">
+                {formatVND(item.pricingView.originalPrice)}
+              </span>
+            ) : null}
+          </div>
+          <div className="product-actions">
+            {showAddToCartAction ? (
+              <button
+                className="product-btn"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleAddToCart(item);
+                }}
+              >
+                Add to cart
+              </button>
+            ) : null}
+            {showDesignAction ? (
+              <button
+                className="product-btn product-btn-outline"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleDesignGlass(item);
+                }}
+              >
+                Design
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -225,11 +345,12 @@ export default function ProductsPage() {
           <h1>All Products</h1>
           {searchKeyword ? (
             <p className="products-subtitle">
-              Search results for "{searchKeyword}" ({filteredGlasses.length} items)
+              Search results in {activeCategory?.label || "category"} for "{searchKeyword}" (
+              {filteredGlasses.length} items)
             </p>
           ) : (
             <p className="products-subtitle">
-              Browse every item available in our store.
+              Browse every item in {activeCategory?.label || "this category"}.
             </p>
           )}
         </div>
@@ -238,178 +359,151 @@ export default function ProductsPage() {
         </button>
       </div>
 
+      {categoryTabs.length > 0 ? (
+        <div className="products-category-tabs" role="tablist" aria-label="All product categories">
+          {categoryTabs.map((category) => (
+            <button
+              key={category.key}
+              type="button"
+              role="tab"
+              aria-selected={activeCategory?.key === category.key}
+              className={`products-category-tab${
+                activeCategory?.key === category.key ? " is-active" : ""
+              }`}
+              onClick={() => handleSelectCategory(category.key)}
+            >
+              {category.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="products-controls">
-        <div className="controls-group" ref={filterRef}>
-          <button
-            className="control-btn"
-            type="button"
-            onClick={() => {
-              setIsFilterOpen((prev) => !prev);
-              setIsSortOpen(false);
-            }}
-          >
-            Filter
-            <span className="control-caret">▾</span>
-          </button>
-          {isFilterOpen ? (
-            <div className="control-menu">
-              <div className="control-section">
-                <p className="control-title">Brand</p>
-                {brandOptions.length === 0 ? (
-                  <p className="control-empty">No brands available.</p>
-                ) : (
-                  <div className="control-brand-list">
-                    {brandOptions.map((brand) => (
-                      <label className="control-option" key={brand}>
-                        <input
-                          type="checkbox"
-                          checked={selectedBrands.includes(brand)}
-                          onChange={() => handleToggleBrand(brand)}
-                        />
-                        <span>{brand}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="control-section">
-                <p className="control-title">Price range</p>
-                <label className="control-option">
-                  <input
-                    type="radio"
-                    name="price-range"
-                    checked={selectedPriceRange === "all"}
-                    onChange={() => setSelectedPriceRange("all")}
-                  />
-                  <span>All</span>
-                </label>
-                {PRICE_RANGES.map((range) => (
-                  <label className="control-option" key={range.id}>
+        <div className="products-results-copy">
+          <p className="products-results-label">Showing</p>
+          <strong>
+            {filteredGlasses.length} / {categoryProducts.length}
+          </strong>
+          <span>{activeCategory?.label || "Category"} products</span>
+        </div>
+
+        <div className="products-control-actions">
+          <div className="controls-group" ref={filterRef}>
+            <button
+              className="control-btn"
+              type="button"
+              onClick={() => {
+                setIsFilterOpen((prev) => !prev);
+                setIsSortOpen(false);
+              }}
+            >
+              Filter
+              <span className="control-caret">v</span>
+            </button>
+            {isFilterOpen ? (
+              <div className="control-menu">
+                <div className="control-section">
+                  <p className="control-title">Brand</p>
+                  {brandOptions.length === 0 ? (
+                    <p className="control-empty">No brands available.</p>
+                  ) : (
+                    <div className="control-brand-list">
+                      {brandOptions.map((brand) => (
+                        <label className="control-option" key={brand}>
+                          <input
+                            type="checkbox"
+                            checked={selectedBrands.includes(brand)}
+                            onChange={() => handleToggleBrand(brand)}
+                          />
+                          <span>{brand}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="control-section">
+                  <p className="control-title">Price range</p>
+                  <label className="control-option">
                     <input
                       type="radio"
                       name="price-range"
-                      checked={selectedPriceRange === range.id}
-                      onChange={() => setSelectedPriceRange(range.id)}
+                      checked={selectedPriceRange === "all"}
+                      onChange={() => setSelectedPriceRange("all")}
                     />
-                    <span>{range.label}</span>
+                    <span>All</span>
                   </label>
-                ))}
+                  {PRICE_RANGES.map((range) => (
+                    <label className="control-option" key={range.id}>
+                      <input
+                        type="radio"
+                        name="price-range"
+                        checked={selectedPriceRange === range.id}
+                        onChange={() => setSelectedPriceRange(range.id)}
+                      />
+                      <span>{range.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="control-actions">
+                  <button className="control-clear" type="button" onClick={handleResetFilters}>
+                    Clear filters
+                  </button>
+                </div>
               </div>
-              <div className="control-actions">
-                <button className="control-clear" type="button" onClick={handleResetFilters}>
-                  Clear filters
+            ) : null}
+          </div>
+
+          <div className="controls-group" ref={sortRef}>
+            <button
+              className="control-btn"
+              type="button"
+              onClick={() => {
+                setIsSortOpen((prev) => !prev);
+                setIsFilterOpen(false);
+              }}
+            >
+              Sort by
+              <span className="control-caret">v</span>
+            </button>
+            {isSortOpen ? (
+              <div className="control-menu control-menu-sort">
+                <button
+                  className={`control-option-btn ${sortOrder === "asc" ? "is-active" : ""}`}
+                  type="button"
+                  onClick={() => {
+                    setSortOrder("asc");
+                    setIsSortOpen(false);
+                  }}
+                >
+                  Price: Low-High
+                </button>
+                <button
+                  className={`control-option-btn ${sortOrder === "desc" ? "is-active" : ""}`}
+                  type="button"
+                  onClick={() => {
+                    setSortOrder("desc");
+                    setIsSortOpen(false);
+                  }}
+                >
+                  Price: High-Low
                 </button>
               </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="controls-group" ref={sortRef}>
-          <button
-            className="control-btn"
-            type="button"
-            onClick={() => {
-              setIsSortOpen((prev) => !prev);
-              setIsFilterOpen(false);
-            }}
-          >
-            Sort by
-            <span className="control-caret">▾</span>
-          </button>
-          {isSortOpen ? (
-            <div className="control-menu control-menu-sort">
-              <button
-                className={`control-option-btn ${sortOrder === "asc" ? "is-active" : ""}`}
-                type="button"
-                onClick={() => {
-                  setSortOrder("asc");
-                  setIsSortOpen(false);
-                }}
-              >
-                Price: Low-High
-              </button>
-              <button
-                className={`control-option-btn ${sortOrder === "desc" ? "is-active" : ""}`}
-                type="button"
-                onClick={() => {
-                  setSortOrder("desc");
-                  setIsSortOpen(false);
-                }}
-              >
-                Price: High-Low
-              </button>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       </div>
 
       {isLoading ? (
         <p className="products-empty">Loading products...</p>
       ) : filteredGlasses.length === 0 ? (
-        <p className="products-empty">No products found for "{searchKeyword}".</p>
+        <p className="products-empty">
+          {searchKeyword
+            ? `No products found for "${searchKeyword}" in this category.`
+            : "No products found in this category."}
+        </p>
       ) : (
         <div className="product-grid">
-          {filteredGlasses.map((item) => (
-            <div
-              className="product-card"
-              key={item.product_id}
-              onClick={() => handleOpenDetail(item)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  handleOpenDetail(item);
-                }
-              }}
-            >
-              <div className="product-image-wrap">
-                <img src={item.image} alt={item.name} className="product-image" />
-                {item.pricingView?.isOnSale ? (
-                  <span className="product-badge">
-                    -{item.pricingView.discountPercent}%
-                  </span>
-                ) : null}
-              </div>
-              <div className="product-body">
-                <div className="product-meta">
-                  <span>{item.brand}</span>
-                  <span>{item.color}</span>
-                </div>
-                <h3 className="product-title">{item.name}</h3>
-                <div className="product-price">
-                  <span className="price-now">
-                    {formatVND(item.pricingView?.finalPrice ?? item.price)}
-                  </span>
-                  {item.pricingView?.isOnSale ? (
-                    <span className="price-old">
-                      {formatVND(item.pricingView.originalPrice)}
-                    </span>
-                  ) : null}
-                </div>
-              <div className="product-actions">
-                <button
-                  className="product-btn"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleAddToCart(item);
-                  }}
-                >
-                  Add to cart
-                </button>
-                <button
-                  className="product-btn product-btn-outline"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleDesignGlass(item);
-                  }}
-                >
-                  Design
-                </button>
-              </div>
-            </div>
-            </div>
-          ))}
+          {filteredGlasses.map((item) => renderProductCard(item))}
         </div>
       )}
       {toast.message ? (

@@ -1,17 +1,21 @@
-// src/pages/HomePage.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import "../styles/HomePage.css";
 import { readCatalogProducts } from "../utils/productCatalog";
 import { computeProductDisplayPricing } from "../utils/pricing";
 import { formatVND } from "../utils/currency";
+import {
+  buildCategoryTabs,
+  normalizeCategoryKey,
+} from "../utils/catalogCategories";
 import banner1 from "../assets/ultras/banner1.jpg";
 import banner2 from "../assets/ultras/banner2.jpg";
 import { useAuth } from "../context/AuthContext";
 import ActionToast from "../components/common/ActionToast";
 import useActionToast from "../hooks/useActionToast";
 
-const ITEMS_PER_PAGE = 8;
+const SEARCH_ITEMS_PER_PAGE = 8;
+const HOME_CATEGORY_LIMIT = 12;
 
 function normalizeText(value) {
   return (value || "")
@@ -22,77 +26,15 @@ function normalizeText(value) {
     .trim();
 }
 
-function normalizeCategoryKey(value) {
-  const normalized = (value || "").toLowerCase().replace(/[\s-]+/g, "_").trim();
-
-  if (normalized === "sunglasses" || normalized === "sun_glasses") {
-    return "sun_glasses";
-  }
-  if (normalized === "optical" || normalized === "readymade_optical") {
-    return "readymade_optical";
-  }
-  if (
-    normalized === "lens" ||
-    normalized === "lenses" ||
-    normalized === "contact_lens" ||
-    normalized === "contact_lenses"
-  ) {
-    return "lens";
-  }
-  if (
-    normalized === "frame_for_design" ||
-    normalized === "framefordesign" ||
-    normalized === "design_frame"
-  ) {
-    return "frame_for_design";
-  }
-  return normalized;
-}
-
-function isLegacyLensCategory(value) {
-  const normalized = (value || "").toLowerCase().replace(/[\s-]+/g, "_").trim();
-  return normalized === "lens" || normalized === "lenses";
-}
-
-const CATEGORY_TABS = [
-  {
-    key: "readymade_optical",
-    label: "Ready made glasses",
-    title: "Readymade_Optical",
-  },
-  {
-    key: "sun_glasses",
-    label: "Sun glasses",
-    title: "Sun glasses",
-  },
-  {
-    key: "lens",
-    label: "Contact lens",
-    title: "Contact lens",
-  },
-  {
-    key: "frame_for_design",
-    label: "Frame for design",
-    title: "Frame for design",
-  },
-];
-
 export default function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const searchKeyword = searchParams.get("q") || "";
   const requestedCategoryKey = normalizeCategoryKey(searchParams.get("category") || "");
-  const hasRequestedCategory = CATEGORY_TABS.some(
-    (category) => category.key === requestedCategoryKey
-  );
-  const initialCategoryKey = hasRequestedCategory
-    ? requestedCategoryKey
-    : CATEGORY_TABS[0].key;
   const categorySectionRef = useRef(null);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState(initialCategoryKey);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast, showToast } = useActionToast();
 
@@ -132,12 +74,73 @@ export default function HomePage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!hasRequestedCategory) {
-      return;
+  const catalogProducts = useMemo(
+    () =>
+      (Array.isArray(products) ? products : []).map((item) =>
+        computeProductDisplayPricing(item)
+      ),
+    [products]
+  );
+
+  const categoryTabs = useMemo(() => buildCategoryTabs(catalogProducts), [catalogProducts]);
+
+  const filteredGlasses = useMemo(() => {
+    const normalizedQuery = normalizeText(searchKeyword);
+    if (!normalizedQuery) {
+      return catalogProducts;
     }
-    setSelectedCategory(requestedCategoryKey);
-  }, [hasRequestedCategory, requestedCategoryKey]);
+
+    const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+
+    return catalogProducts.filter((item) => {
+      const searchableText = normalizeText(
+        `${item.name} ${item.brand} ${item.color} ${item.category}`
+      );
+
+      return queryTokens.every((token) => searchableText.includes(token));
+    });
+  }, [catalogProducts, searchKeyword]);
+
+  const activeCategory = useMemo(
+    () => {
+      if (categoryTabs.length === 0) {
+        return null;
+      }
+
+      return (
+        categoryTabs.find((category) => category.key === requestedCategoryKey) ??
+        categoryTabs[0]
+      );
+    },
+    [categoryTabs, requestedCategoryKey]
+  );
+
+  const activeCategorySourceProducts = useMemo(() => {
+    if (!activeCategory?.key) {
+      return [];
+    }
+
+    return catalogProducts.filter(
+      (item) => normalizeCategoryKey(item.category) === activeCategory.key
+    );
+  }, [activeCategory, catalogProducts]);
+
+  const featuredCategoryProducts = useMemo(
+    () => activeCategorySourceProducts.slice(0, HOME_CATEGORY_LIMIT),
+    [activeCategorySourceProducts]
+  );
+
+  const searchTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(filteredGlasses.length / SEARCH_ITEMS_PER_PAGE)),
+    [filteredGlasses.length]
+  );
+
+  const activeSearchPage = Math.min(currentPage, searchTotalPages);
+
+  const pagedSearchProducts = useMemo(() => {
+    const startIndex = (activeSearchPage - 1) * SEARCH_ITEMS_PER_PAGE;
+    return filteredGlasses.slice(startIndex, startIndex + SEARCH_ITEMS_PER_PAGE);
+  }, [activeSearchPage, filteredGlasses]);
 
   const handleAddToCart = (glasses) => {
     if (!ensureCustomer()) {
@@ -170,79 +173,6 @@ export default function HomePage() {
     localStorage.setItem("cart", JSON.stringify(currentCart));
     showToast("Added to cart successfully");
   };
-
-  const filteredGlasses = useMemo(() => {
-    const visibleProducts = (Array.isArray(products) ? products : []).filter(
-      (item) => !isLegacyLensCategory(item?.category)
-    );
-    const normalizedQuery = normalizeText(searchKeyword);
-    if (!normalizedQuery) {
-      return visibleProducts.map((item) => computeProductDisplayPricing(item));
-    }
-
-    const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
-
-    return visibleProducts
-      .filter((item) => {
-      const searchableText = normalizeText(
-        `${item.name} ${item.brand} ${item.color} ${item.category}`
-      );
-
-      return queryTokens.every((token) => searchableText.includes(token));
-      })
-      .map((item) => computeProductDisplayPricing(item));
-  }, [products, searchKeyword]);
-
-  const activeCategory = useMemo(
-    () =>
-      CATEGORY_TABS.find((category) => category.key === selectedCategory) ??
-      CATEGORY_TABS[0],
-    [selectedCategory]
-  );
-
-  const activeCategorySourceProducts = useMemo(
-    () =>
-      filteredGlasses.filter(
-        (item) => normalizeCategoryKey(item.category) === activeCategory.key
-      ),
-    [filteredGlasses, activeCategory]
-  );
-
-  const searchTotalPages = useMemo(
-    () => Math.max(1, Math.ceil(filteredGlasses.length / ITEMS_PER_PAGE)),
-    [filteredGlasses.length]
-  );
-
-  const activeCategoryTotalPages = useMemo(
-    () =>
-      Math.max(1, Math.ceil(activeCategorySourceProducts.length / ITEMS_PER_PAGE)),
-    [activeCategorySourceProducts.length]
-  );
-
-  const currentTotalPages = searchKeyword
-    ? searchTotalPages
-    : activeCategoryTotalPages;
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchKeyword, selectedCategory]);
-
-  useEffect(() => {
-    setCurrentPage((prev) => Math.min(prev, currentTotalPages));
-  }, [currentTotalPages]);
-
-  const pagedSearchProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredGlasses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredGlasses, currentPage]);
-
-  const activeCategoryProducts = useMemo(
-    () => {
-      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      return activeCategorySourceProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    },
-    [activeCategorySourceProducts, currentPage]
-  );
 
   const handleDesignGlass = (glasses) => {
     if (!ensureCustomer()) {
@@ -277,9 +207,24 @@ export default function HomePage() {
     navigate(`/products/${glasses.product_id}`, { state: { product: glasses } });
   };
 
+  const handleViewAllProducts = () => {
+    if (!activeCategory?.key) {
+      return;
+    }
+
+    const nextSearch = new URLSearchParams({ category: activeCategory.key }).toString();
+    navigate(`/products?${nextSearch}`);
+  };
+
+  const handleSelectCategory = (categoryKey) => {
+    const nextSearch = new URLSearchParams(searchParams);
+    nextSearch.set("category", categoryKey);
+    setSearchParams(nextSearch);
+  };
+
   const pageNumbers = useMemo(
-    () => Array.from({ length: currentTotalPages }, (_, index) => index + 1),
-    [currentTotalPages]
+    () => Array.from({ length: searchTotalPages }, (_, index) => index + 1),
+    [searchTotalPages]
   );
 
   const renderProductCard = (item) => {
@@ -287,7 +232,6 @@ export default function HomePage() {
     const isFrameForDesign = categoryKey === "frame_for_design";
     const showAddToCartAction = !isFrameForDesign;
     const showDesignAction = isFrameForDesign;
-    const isSingleAction = true;
 
     return (
       <div
@@ -323,7 +267,7 @@ export default function HomePage() {
               <span className="price-old">{formatVND(item.pricingView.originalPrice)}</span>
             ) : null}
           </div>
-          <div className={`product-actions${isSingleAction ? " is-single" : ""}`}>
+          <div className="product-actions is-single">
             {showAddToCartAction ? (
               <button
                 className="product-btn product-btn-single"
@@ -415,7 +359,7 @@ export default function HomePage() {
                 <button
                   type="button"
                   className="home-pagination-btn"
-                  disabled={currentPage <= 1}
+                  disabled={activeSearchPage <= 1}
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 >
                   Previous
@@ -424,9 +368,7 @@ export default function HomePage() {
                   <button
                     key={page}
                     type="button"
-                    className={`home-pagination-btn${
-                      page === currentPage ? " is-active" : ""
-                    }`}
+                    className={`home-pagination-btn${page === activeSearchPage ? " is-active" : ""}`}
                     onClick={() => setCurrentPage(page)}
                   >
                     {page}
@@ -435,7 +377,7 @@ export default function HomePage() {
                 <button
                   type="button"
                   className="home-pagination-btn"
-                  disabled={currentPage >= searchTotalPages}
+                  disabled={activeSearchPage >= searchTotalPages}
                   onClick={() =>
                     setCurrentPage((prev) => Math.min(searchTotalPages, prev + 1))
                   }
@@ -448,16 +390,14 @@ export default function HomePage() {
         ) : (
           <div className="category-browser">
             <div className="category-tabs" role="tablist" aria-label="Shop by category">
-              {CATEGORY_TABS.map((category) => (
+              {categoryTabs.map((category) => (
                 <button
                   key={category.key}
                   type="button"
                   role="tab"
-                  aria-selected={selectedCategory === category.key}
-                  className={`category-tab${
-                    selectedCategory === category.key ? " is-active" : ""
-                  }`}
-                  onClick={() => setSelectedCategory(category.key)}
+                  aria-selected={activeCategory?.key === category.key}
+                  className={`category-tab${activeCategory?.key === category.key ? " is-active" : ""}`}
+                  onClick={() => handleSelectCategory(category.key)}
                 >
                   {category.label}
                 </button>
@@ -466,53 +406,30 @@ export default function HomePage() {
 
             <div className="category-section">
               <div className="category-section-header">
-                <h3 className="category-section-title">{activeCategory.title}</h3>
+                <div>
+                  <h3 className="category-section-title">
+                    {activeCategory?.title || "Category"}
+                  </h3>
+                  <p className="category-section-subtitle">
+                    Showing {Math.min(activeCategorySourceProducts.length, HOME_CATEGORY_LIMIT)} of{" "}
+                    {activeCategorySourceProducts.length} products
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="section-link"
+                  onClick={handleViewAllProducts}
+                >
+                  View all
+                </button>
               </div>
 
-              {activeCategoryProducts.length === 0 ? (
+              {featuredCategoryProducts.length === 0 ? (
                 <p className="ultras-empty">No products in this category yet.</p>
               ) : (
-                <>
-                  <div className="product-grid">
-                    {activeCategoryProducts.map((item) => renderProductCard(item))}
-                  </div>
-                  {activeCategoryTotalPages > 1 ? (
-                    <div className="home-pagination">
-                      <button
-                        type="button"
-                        className="home-pagination-btn"
-                        disabled={currentPage <= 1}
-                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                      >
-                        Previous
-                      </button>
-                      {pageNumbers.map((page) => (
-                        <button
-                          key={page}
-                          type="button"
-                          className={`home-pagination-btn${
-                            page === currentPage ? " is-active" : ""
-                          }`}
-                          onClick={() => setCurrentPage(page)}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        className="home-pagination-btn"
-                        disabled={currentPage >= activeCategoryTotalPages}
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(activeCategoryTotalPages, prev + 1)
-                          )
-                        }
-                      >
-                        Next
-                      </button>
-                    </div>
-                  ) : null}
-                </>
+                <div className="product-grid">
+                  {featuredCategoryProducts.map((item) => renderProductCard(item))}
+                </div>
               )}
             </div>
           </div>

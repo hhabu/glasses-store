@@ -7,7 +7,7 @@ import ProductConfigManagement from "../components/admin/ProductConfigManagement
 import UserManagement from "../components/admin/UserManagement";
 
 export default function AdminDashboard() {
-  const [activeSection, setActiveSection] = useState("BUSINESS_RULES");
+  const [activeSection, setActiveSection] = useState("PRODUCT_CONFIG");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -21,9 +21,6 @@ export default function AdminDashboard() {
   /* ================= CONTENT RENDER ================= */
   const renderContent = () => {
     switch (activeSection) {
-      case "BUSINESS_RULES":
-        return <h2>Business Rules & Policies Management</h2>;
-
       case "PRODUCT_CONFIG":
         return <ProductConfigManagement mode="basic" />;
 
@@ -55,13 +52,6 @@ export default function AdminDashboard() {
         <h3 className="sidebar-title">Admin Panel</h3>
 
         <button onClick={() => navigate("/")}>HomePage</button>
-
-        <button
-          className={activeSection === "BUSINESS_RULES" ? "active" : ""}
-          onClick={() => setActiveSection("BUSINESS_RULES")}
-        >
-          Business Rules
-        </button>
 
         <button
           className={activeSection === "PRODUCT_CONFIG" ? "active" : ""}
