@@ -1,3 +1,5 @@
+import { getOrderWorkflow } from "../utils/orderWorkflow";
+
 const API_BASE_URL = (import.meta.env.VITE_ORDER_API_URL || "").trim();
 
 function getApiBaseUrl() {
@@ -104,6 +106,19 @@ export function mapApiOrderToView(order) {
     },
     items,
     totalPrice: toNumber(order?.total_price, totalFromItems),
+    workflow: getOrderWorkflow({
+      ...order,
+      items,
+      status: order?.status ?? "",
+      customer: {
+        note: order?.note ?? "",
+      },
+      payment: {
+        method: order?.payment_method ?? "",
+        status: order?.payment_status ?? "",
+      },
+      raw: order ?? {},
+    }),
     raw: order ?? {},
   };
 }
